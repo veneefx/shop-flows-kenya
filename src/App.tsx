@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import DashboardLayout from "./pages/DashboardLayout";
 import DashboardOverview from "./pages/dashboard/DashboardOverview";
+import PaymentsSettings from "./pages/dashboard/PaymentsSettings";
 
 const queryClient = new QueryClient();
 
@@ -30,7 +31,7 @@ const App = () => (
                 <Route path="orders" element={<DashboardOverview />} />
                 <Route path="customers" element={<DashboardOverview />} />
                 <Route path="analytics" element={<DashboardOverview />} />
-                <Route path="payments" element={<DashboardOverview />} />
+                <Route path="payments" element={<PaymentsSettings />} />
                 <Route path="store" element={<DashboardOverview />} />
                 <Route path="upgrade" element={<DashboardOverview />} />
                 <Route path="settings" element={<DashboardOverview />} />
