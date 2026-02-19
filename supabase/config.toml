@@ -1,1 +1,7 @@
 project_id = "hiwphnopnzzrkcqvlces"
+
+[functions.lipana-stk-push]
+verify_jwt = false
+
+[functions.lipana-webhook]
+verify_jwt = false
