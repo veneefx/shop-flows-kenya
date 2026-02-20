@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Moon, Menu, X, ChevronDown } from "lucide-react";
+import { Sun, Moon, MoreVertical, X, ChevronRight } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import logoImg from "@/assets/logo.png";
@@ -10,7 +10,7 @@ const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -30,7 +30,7 @@ const Navbar = () => {
   ];
 
   const scrollTo = (id: string) => {
-    setMobileOpen(false);
+    setMenuOpen(false);
     if (!isLanding) {
       navigate("/");
       setTimeout(() => {
@@ -42,131 +42,145 @@ const Navbar = () => {
   };
 
   return (
-    <motion.nav
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled || !isLanding
-          ? "glass-dark shadow-xl"
-          : "bg-transparent"
-      }`}
-    >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-brand">
-              <img src={logoImg} alt="Vee Digital Solutions" className="w-6 h-6 object-contain" />
-            </div>
-            <div className="hidden sm:block">
-              <span className="font-display font-bold text-lg text-white leading-none">Vee Digital</span>
-              <p className="text-xs text-white/50 leading-none font-body">Solutions</p>
-            </div>
-          </Link>
-
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <button
-                key={link.label}
-                onClick={() => scrollTo(link.href)}
-                className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
-              >
-                {link.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Right Actions */}
-          <div className="flex items-center gap-3">
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="w-9 h-9 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 transition-all duration-200 text-white"
-              aria-label="Toggle theme"
-            >
-              <AnimatePresence mode="wait">
-                {theme === "dark" ? (
-                  <motion.span key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
-                    <Sun size={16} />
-                  </motion.span>
-                ) : (
-                  <motion.span key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
-                    <Moon size={16} />
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </button>
-
-            {user ? (
-              <Link
-                to="/dashboard"
-                className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm shadow-brand hover:bg-brand-light transition-all duration-200"
-              >
-                Dashboard
-              </Link>
-            ) : (
-              <div className="hidden sm:flex items-center gap-2">
-                <Link
-                  to="/auth"
-                  className="px-4 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/auth?mode=signup"
-                  className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-sm shadow-brand hover:bg-brand-light hover:shadow-lg transition-all duration-200"
-                >
-                  Start Free Trial
-                </Link>
+    <>
+      <motion.nav
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled || !isLanding ? "glass-dark shadow-xl" : "bg-transparent"
+        }`}
+      >
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 lg:h-20">
+            {/* Logo — transparent bg, no green box */}
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <img
+                src={logoImg}
+                alt="Vee Digital Solutions"
+                className="w-10 h-10 object-contain drop-shadow-lg"
+              />
+              <div className="hidden sm:block">
+                <span className="font-display font-bold text-lg text-white leading-none">Vee Digital</span>
+                <p className="text-xs text-white/50 leading-none font-body">Solutions</p>
               </div>
-            )}
+            </Link>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 transition text-white"
-            >
-              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
+            {/* Right: theme + three-dot */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleTheme}
+                className="w-9 h-9 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 transition-all duration-200 text-white"
+                aria-label="Toggle theme"
+              >
+                <AnimatePresence mode="wait">
+                  {theme === "dark" ? (
+                    <motion.span key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                      <Sun size={16} />
+                    </motion.span>
+                  ) : (
+                    <motion.span key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                      <Moon size={16} />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </button>
+
+              {/* Three-dot menu button */}
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="w-9 h-9 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 transition text-white"
+                aria-label="Menu"
+              >
+                {menuOpen ? <X size={18} /> : <MoreVertical size={18} />}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </motion.nav>
 
-      {/* Mobile Menu */}
+      {/* Slide-in menu from top-right */}
       <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="lg:hidden glass-dark border-t border-white/10"
-          >
-            <div className="container mx-auto px-4 py-4 flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={() => scrollTo(link.href)}
-                  className="text-left px-4 py-3 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-                >
-                  {link.label}
+        {menuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMenuOpen(false)}
+              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            />
+            {/* Menu panel */}
+            <motion.div
+              initial={{ opacity: 0, x: 320, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 320, scale: 0.95 }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+              className="fixed top-4 right-4 z-50 w-72 rounded-2xl overflow-hidden shadow-2xl"
+              style={{ background: "hsl(220 20% 6% / 0.97)", border: "1px solid hsl(220 15% 20% / 0.6)", backdropFilter: "blur(24px)" }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <img src={logoImg} alt="Vee" className="w-7 h-7 object-contain" />
+                  <span className="font-display font-bold text-sm text-white">Vee Digital</span>
+                </div>
+                <button onClick={() => setMenuOpen(false)} className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-white/60 hover:text-white">
+                  <X size={14} />
                 </button>
-              ))}
-              <div className="border-t border-white/10 pt-3 mt-1 flex flex-col gap-2">
-                <Link to="/auth" onClick={() => setMobileOpen(false)} className="px-4 py-3 text-sm text-center text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all">
-                  Sign In
-                </Link>
-                <Link to="/auth?mode=signup" onClick={() => setMobileOpen(false)} className="px-4 py-3 text-sm text-center font-semibold rounded-xl bg-primary text-primary-foreground shadow-brand">
-                  Start Free Trial
-                </Link>
               </div>
-            </div>
-          </motion.div>
+
+              {/* Nav links */}
+              <div className="px-3 py-3">
+                {navLinks.map((link) => (
+                  <button
+                    key={link.label}
+                    onClick={() => scrollTo(link.href)}
+                    className="w-full flex items-center justify-between px-4 py-3 text-sm font-display font-medium text-white/70 hover:text-white hover:bg-white/8 rounded-xl transition-all group"
+                  >
+                    {link.label}
+                    <ChevronRight size={14} className="text-white/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                  </button>
+                ))}
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="px-4 pb-4 pt-1 space-y-2.5 border-t border-white/10">
+                {user ? (
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm shadow-brand hover:bg-brand-light transition-all"
+                  >
+                    Go to Dashboard
+                    <ChevronRight size={15} />
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      to="/auth"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-display font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-all border border-white/10"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/auth?mode=signup"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm shadow-brand hover:bg-brand-light transition-all"
+                    >
+                      Start Free Trial
+                      <ChevronRight size={15} />
+                    </Link>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
-    </motion.nav>
+    </>
   );
 };
 
