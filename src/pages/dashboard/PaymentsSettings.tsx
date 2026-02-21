@@ -31,7 +31,9 @@ const PaymentsSettings = () => {
         .from("shops")
         .select("id, lipana_publishable_key, lipana_secret_key, lipana_webhook_secret")
         .eq("user_id", user.id)
-        .single();
+        .order("created_at")
+        .limit(1)
+        .maybeSingle();
 
       if (data) {
         setShopId(data.id);

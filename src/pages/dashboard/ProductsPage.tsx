@@ -37,14 +37,10 @@ const ProductsPage = () => {
   useEffect(() => {
     if (!user) return;
     const init = async () => {
-      let { data: shop } = await supabase.from("shops").select("id").eq("user_id", user.id).single();
+      const { data: shop } = await supabase.from("shops").select("id").eq("user_id", user.id).order("created_at").limit(1).maybeSingle();
       if (!shop) {
-        // Auto-create a shop for new users
-        const slug = user.email!.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "-") + "-" + Date.now().toString(36);
-        const { data: newShop } = await supabase.from("shops").insert({
-          user_id: user.id, shop_name: "My Shop", slug, is_active: true,
-        }).select("id").single();
-        shop = newShop;
+        setLoading(false);
+        return;
       }
       if (shop) {
         setShopId(shop.id);

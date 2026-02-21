@@ -34,7 +34,7 @@ const OrdersPage = () => {
   useEffect(() => {
     if (!user) return;
     const init = async () => {
-      const { data: shop } = await supabase.from("shops").select("id").eq("user_id", user.id).single();
+      const { data: shop } = await supabase.from("shops").select("id").eq("user_id", user.id).order("created_at").limit(1).maybeSingle();
       if (shop) {
         setShopId(shop.id);
         const { data } = await supabase.from("orders").select("*").eq("shop_id", shop.id).order("created_at", { ascending: false });

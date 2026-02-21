@@ -27,8 +27,8 @@ const SettingsPage = () => {
     if (!user) return;
     const init = async () => {
       const [{ data: s }, { data: p }] = await Promise.all([
-        supabase.from("shops").select("*").eq("user_id", user.id).single(),
-        supabase.from("profiles").select("*").eq("user_id", user.id).single(),
+        supabase.from("shops").select("*").eq("user_id", user.id).order("created_at").limit(1).maybeSingle(),
+        supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
       ]);
       if (s) { setShop(s); setStoreForm({ shop_name: s.shop_name || "", description: s.description || "", slug: s.slug || "", theme_color: s.theme_color || "#22c55e", logo_url: s.logo_url || "" }); }
       if (p) { setProfile(p); setProfileForm({ full_name: p.full_name || "", email: user.email || "" }); }
