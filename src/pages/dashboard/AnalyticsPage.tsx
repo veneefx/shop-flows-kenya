@@ -19,7 +19,7 @@ const AnalyticsPage = () => {
   useEffect(() => {
     if (!user) return;
     const init = async () => {
-      const { data: shop } = await supabase.from("shops").select("id").eq("user_id", user.id).single();
+      const { data: shop } = await supabase.from("shops").select("id").eq("user_id", user.id).order("created_at").limit(1).maybeSingle();
       if (shop) {
         const [{ data: o }, { data: p }] = await Promise.all([
           supabase.from("orders").select("*").eq("shop_id", shop.id),

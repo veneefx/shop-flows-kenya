@@ -21,7 +21,7 @@ const CustomersPage = () => {
   useEffect(() => {
     if (!user) return;
     const init = async () => {
-      const { data: shop } = await supabase.from("shops").select("id").eq("user_id", user.id).single();
+      const { data: shop } = await supabase.from("shops").select("id").eq("user_id", user.id).order("created_at").limit(1).maybeSingle();
       if (shop) {
         const { data: orders } = await supabase.from("orders").select("customer_phone, customer_name, total, created_at").eq("shop_id", shop.id);
         if (orders) {

@@ -14,7 +14,7 @@ const MyStorePage = () => {
   useEffect(() => {
     if (!user) return;
     const init = async () => {
-      const { data: s } = await supabase.from("shops").select("*").eq("user_id", user.id).single();
+      const { data: s } = await supabase.from("shops").select("*").eq("user_id", user.id).order("created_at").limit(1).maybeSingle();
       if (s) {
         setShop(s);
         const { data: p } = await supabase.from("products").select("*").eq("shop_id", s.id).eq("is_active", true).limit(8);

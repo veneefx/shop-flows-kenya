@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart, Search, Package, Filter, X, Plus, Minus,
-  ChevronLeft, Phone, User, CreditCard, CheckCircle, Loader2, Tag
+  ChevronLeft, Phone, User, CreditCard, CheckCircle, Loader2, Tag, Store as StoreIcon
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -37,7 +37,7 @@ const PublicStorePage = () => {
   useEffect(() => {
     if (!slug) return;
     const init = async () => {
-      const { data: s } = await supabase.from("shops").select("*").eq("slug", slug).eq("is_active", true).single();
+      const { data: s } = await supabase.from("shops").select("*").eq("slug", slug).eq("is_active", true).maybeSingle();
       if (!s) { setLoading(false); return; }
       setShop(s);
       const { data: p } = await supabase.from("products").select("*").eq("shop_id", s.id).eq("is_active", true).order("created_at", { ascending: false });
@@ -131,7 +131,7 @@ const PublicStorePage = () => {
               <img src={shop.logo_url} alt={shop.shop_name} className="w-9 h-9 rounded-xl object-contain" />
             ) : (
               <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: shop.theme_color || "hsl(142 71% 45%)" }}>
-                <Store className="w-5 h-5 text-white" />
+                <StoreIcon className="w-5 h-5 text-white" />
               </div>
             )}
             <div>
