@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Package, Plus, Search, Edit2, Trash2, Eye, EyeOff,
-  ImagePlus, Save, X, ChevronLeft, Loader2, Filter, Tag
+  ImagePlus, Save, X, ChevronLeft, Loader2, Filter, Tag, Upload
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,6 +29,8 @@ const ProductsPage = () => {
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     name: "", price: "", stock: "", category: "", description: "", image_url: "", is_active: true,
@@ -230,15 +232,51 @@ const ProductsPage = () => {
 
             <div className="flex-1 p-6 space-y-4">
               {/* Image preview */}
-              {form.image_url && (
-                <div className="w-full h-48 rounded-xl overflow-hidden bg-secondary">
-                  <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" />
+              {/* Image upload / URL */}
+              <div>
+                <label className="block text-xs font-display font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Product Image</label>
+                {form.image_url && (
+                  <div className="relative w-full h-48 rounded-xl overflow-hidden bg-secondary mb-3">
+                    <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" />
+                    <button onClick={() => setForm({ ...form, image_url: "" })}
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors">
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                    className="flex items-center gap-2 px-4 py-3 rounded-xl bg-accent text-accent-foreground font-display font-semibold text-sm hover:bg-primary hover:text-primary-foreground transition-all disabled:opacity-60">
+                    {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+                    {uploading ? "Uploading..." : "Upload"}
+                  </button>
+                  <input
+                    type="url"
+                    value={form.image_url}
+                    onChange={e => setForm({ ...form, image_url: e.target.value })}
+                    placeholder="Or paste image URL..."
+                    className="flex-1 px-4 py-3 rounded-xl bg-background border border-input text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
                 </div>
-              )}
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 5 * 1024 * 1024) { toast({ title: "Image too large (max 5MB)", variant: "destructive" }); return; }
+                  setUploading(true);
+                  const ext = file.name.split(".").pop();
+                  const path = `${shopId}/${Date.now()}.${ext}`;
+                  const { error } = await supabase.storage.from("product-images").upload(path, file);
+                  if (error) { toast({ title: "Upload failed", variant: "destructive" }); setUploading(false); return; }
+                  const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+                  setForm(prev => ({ ...prev, image_url: urlData.publicUrl }));
+                  setUploading(false);
+                  toast({ title: "Image uploaded!" });
+                }} />
+                <p className="text-xs text-muted-foreground font-body mt-1.5">Upload a photo or paste a direct image link (max 5MB)</p>
+              </div>
 
               {[
                 { label: "Product Name *", key: "name", type: "text", placeholder: "e.g. Samsung Galaxy A55" },
-                { label: "Image URL", key: "image_url", type: "url", placeholder: "https://..." },
                 { label: "Price (KSh) *", key: "price", type: "number", placeholder: "e.g. 45000" },
                 { label: "Stock Quantity", key: "stock", type: "number", placeholder: "e.g. 10" },
                 { label: "Category", key: "category", type: "text", placeholder: "e.g. Electronics" },
