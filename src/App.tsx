@@ -18,6 +18,7 @@ import AnalyticsPage from "./pages/dashboard/AnalyticsPage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
 import UpgradePage from "./pages/dashboard/UpgradePage";
 import MyStorePage from "./pages/dashboard/MyStorePage";
+import AdminPage from "./pages/dashboard/AdminPage";
 import PublicStorePage from "./pages/PublicStorePage";
 import AIAssistant from "./components/AIAssistant";
 
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="store" element={<MyStorePage />} />
                 <Route path="upgrade" element={<UpgradePage />} />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route path="admin" element={<AdminPage />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
