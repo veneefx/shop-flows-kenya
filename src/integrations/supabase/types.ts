@@ -69,43 +69,61 @@ export type Database = {
       }
       products: {
         Row: {
+          brand: string | null
           category: string | null
+          colors: string[] | null
           created_at: string
           description: string | null
           id: string
           images: string[] | null
           is_active: boolean | null
+          is_featured: boolean | null
           name: string
           price: number
           shop_id: string
+          sizes: string[] | null
+          sku: string | null
           stock: number
           updated_at: string
+          weight: string | null
         }
         Insert: {
+          brand?: string | null
           category?: string | null
+          colors?: string[] | null
           created_at?: string
           description?: string | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
+          is_featured?: boolean | null
           name: string
           price?: number
           shop_id: string
+          sizes?: string[] | null
+          sku?: string | null
           stock?: number
           updated_at?: string
+          weight?: string | null
         }
         Update: {
+          brand?: string | null
           category?: string | null
+          colors?: string[] | null
           created_at?: string
           description?: string | null
           id?: string
           images?: string[] | null
           is_active?: boolean | null
+          is_featured?: boolean | null
           name?: string
           price?: number
           shop_id?: string
+          sizes?: string[] | null
+          sku?: string | null
           stock?: number
           updated_at?: string
+          weight?: string | null
         }
         Relationships: [
           {

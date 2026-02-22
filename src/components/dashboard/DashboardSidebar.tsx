@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, ShoppingBag, Users,
   BarChart3, CreditCard, Settings, TrendingUp,
   LogOut, Store, Sun, Moon, ChevronLeft, ChevronRight,
-  Bell, Crown
+  Bell, Crown, Shield
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ const navItems = [
   { icon: Store, label: "My Store", path: "/dashboard/store" },
   { icon: Crown, label: "Upgrade Plan", path: "/dashboard/upgrade" },
   { icon: Settings, label: "Settings", path: "/dashboard/settings" },
+  { icon: Shield, label: "Admin", path: "/dashboard/admin" },
 ];
 
 const DashboardSidebar = () => {
