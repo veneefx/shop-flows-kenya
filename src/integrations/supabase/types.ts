@@ -77,6 +77,7 @@ export type Database = {
           id: string
           images: string[] | null
           is_active: boolean | null
+          is_adult: boolean | null
           is_featured: boolean | null
           name: string
           price: number
@@ -85,6 +86,7 @@ export type Database = {
           sku: string | null
           stock: number
           updated_at: string
+          video_url: string | null
           weight: string | null
         }
         Insert: {
@@ -96,6 +98,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_active?: boolean | null
+          is_adult?: boolean | null
           is_featured?: boolean | null
           name: string
           price?: number
@@ -104,6 +107,7 @@ export type Database = {
           sku?: string | null
           stock?: number
           updated_at?: string
+          video_url?: string | null
           weight?: string | null
         }
         Update: {
@@ -115,6 +119,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_active?: boolean | null
+          is_adult?: boolean | null
           is_featured?: boolean | null
           name?: string
           price?: number
@@ -123,6 +128,7 @@ export type Database = {
           sku?: string | null
           stock?: number
           updated_at?: string
+          video_url?: string | null
           weight?: string | null
         }
         Relationships: [

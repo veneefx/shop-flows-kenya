@@ -33,6 +33,8 @@ interface Product {
   colors: string[] | null;
   brand: string | null;
   is_featured: boolean | null;
+  video_url: string | null;
+  is_adult: boolean | null;
 }
 
 const CART_STORAGE_KEY = "vee-cart";
@@ -63,6 +65,10 @@ const PublicStorePage = () => {
   const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "cash">("mpesa");
   const [mpesaPhone, setMpesaPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [ageVerified, setAgeVerified] = useState<boolean>(() => {
+    try { return localStorage.getItem("vee-age-verified") === "true"; } catch { return false; }
+  });
+  const [showAgeGate, setShowAgeGate] = useState(false);
 
   // Persist cart
   useEffect(() => {
@@ -87,7 +93,8 @@ const PublicStorePage = () => {
   const filtered = products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
     const matchCat = category === "all" || p.category === category;
-    return matchSearch && matchCat;
+    const matchAge = ageVerified || !p.is_adult;
+    return matchSearch && matchCat && matchAge;
   });
 
   const addToCart = useCallback((product: Product, size?: string, color?: string) => {
@@ -411,9 +418,11 @@ const PublicStorePage = () => {
       {featured.length > 0 && category === "all" && !search && (
         <section className="max-w-7xl mx-auto px-4 pt-6">
           <div className="relative rounded-xl overflow-hidden bg-gray-100" style={{ minHeight: 320 }}>
-            {featured[0].images?.[0] && (
+            {featured[0].video_url ? (
+              <video src={featured[0].video_url} className="w-full h-80 object-cover" autoPlay muted loop playsInline />
+            ) : featured[0].images?.[0] ? (
               <img src={featured[0].images[0]} alt={featured[0].name} className="w-full h-80 object-cover" />
-            )}
+            ) : null}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-8">
               <p className="text-white text-sm font-semibold uppercase tracking-wider mb-1">FEATURED</p>
               <h2 className="text-white text-3xl font-black uppercase">{featured[0].name}</h2>
@@ -490,7 +499,10 @@ const PublicStorePage = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {filtered.map(p => (
               <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                className="group cursor-pointer" onClick={() => { setSelectedProduct(p); setSelectedSize(""); setSelectedColor(""); setQty(1); window.scrollTo(0, 0); }}>
+                className="group cursor-pointer" onClick={() => {
+                  if (p.is_adult && !ageVerified) { setShowAgeGate(true); return; }
+                  setSelectedProduct(p); setSelectedSize(""); setSelectedColor(""); setQty(1); window.scrollTo(0, 0);
+                }}>
                 <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
                   {p.images?.[0] ? <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     : <div className="w-full h-full flex items-center justify-center"><Package size={40} className="text-gray-200" /></div>}
@@ -543,6 +555,33 @@ const PublicStorePage = () => {
           <ShoppingCart size={18} />{cartCount} items · KSh {cartTotal.toLocaleString()}
         </motion.button>
       )}
+
+      {/* 18+ Age Gate Modal */}
+      <AnimatePresence>
+        {showAgeGate && (
+          <>
+            <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" onClick={() => setShowAgeGate(false)} />
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed z-[60] inset-0 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center">
+                <div className="text-5xl mb-4">🔞</div>
+                <h2 className="text-xl font-black text-gray-900 mb-2">Age Verification</h2>
+                <p className="text-sm text-gray-500 mb-6">This product is restricted to adults only. Are you 18 years or older?</p>
+                <div className="flex gap-3">
+                  <button onClick={() => setShowAgeGate(false)}
+                    className="flex-1 py-3 rounded-xl border-2 border-gray-200 font-bold text-sm text-gray-500 hover:bg-gray-50 transition-all">
+                    Under 18
+                  </button>
+                  <button onClick={() => { setAgeVerified(true); localStorage.setItem("vee-age-verified", "true"); setShowAgeGate(false); }}
+                    className="flex-1 py-3 rounded-xl font-bold text-sm text-white transition-all hover:opacity-90" style={{ backgroundColor: themeColor }}>
+                    I'm 18+
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
