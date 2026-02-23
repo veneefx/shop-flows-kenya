@@ -24,6 +24,8 @@ interface Product {
   sku: string | null;
   weight: string | null;
   is_featured: boolean | null;
+  video_url: string | null;
+  is_adult: boolean | null;
 }
 
 const ProductsPage = () => {
@@ -41,6 +43,7 @@ const ProductsPage = () => {
   const [form, setForm] = useState({
     name: "", price: "", stock: "", category: "", description: "", image_url: "", is_active: true,
     sizes: "", colors: "", brand: "", sku: "", weight: "", is_featured: false,
+    video_url: "", is_adult: false,
   });
 
   useEffect(() => {
@@ -58,7 +61,7 @@ const ProductsPage = () => {
 
   const openAdd = () => {
     setEditProduct(null);
-    setForm({ name: "", price: "", stock: "", category: "", description: "", image_url: "", is_active: true, sizes: "", colors: "", brand: "", sku: "", weight: "", is_featured: false });
+    setForm({ name: "", price: "", stock: "", category: "", description: "", image_url: "", is_active: true, sizes: "", colors: "", brand: "", sku: "", weight: "", is_featured: false, video_url: "", is_adult: false });
     setShowForm(true);
   };
 
@@ -71,6 +74,7 @@ const ProductsPage = () => {
       sizes: (p.sizes || []).join(", "), colors: (p.colors || []).join(", "),
       brand: p.brand || "", sku: p.sku || "", weight: p.weight || "",
       is_featured: p.is_featured ?? false,
+      video_url: p.video_url || "", is_adult: p.is_adult ?? false,
     });
     setShowForm(true);
   };
@@ -89,6 +93,7 @@ const ProductsPage = () => {
       images: form.image_url ? [form.image_url] : [], is_active: form.is_active, shop_id: shopId,
       sizes: sizesArr, colors: colorsArr, brand: form.brand || null,
       sku: form.sku || null, weight: form.weight || null, is_featured: form.is_featured,
+      video_url: form.video_url || null, is_adult: form.is_adult,
     };
     if (editProduct) {
       const { error } = await supabase.from("products").update(payload).eq("id", editProduct.id);
@@ -317,7 +322,28 @@ const ProductsPage = () => {
                   </div>
                   <span className="text-sm font-display font-medium text-foreground">⭐ Featured product (shown on hero banner)</span>
                 </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <div onClick={() => setForm({ ...form, is_adult: !form.is_adult })}
+                    className={`w-11 h-6 rounded-full transition-colors ${form.is_adult ? "bg-red-500" : "bg-muted"} relative`}>
+                    <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${form.is_adult ? "translate-x-5" : "translate-x-0.5"}`} />
+                  </div>
+                  <span className="text-sm font-display font-medium text-foreground">🔞 Adult product (18+ only)</span>
+                </label>
               </div>
+
+              {/* Video Ad URL (for featured products) */}
+              {form.is_featured && (
+                <div>
+                  <label className="block text-xs font-display font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Video Ad URL (optional)</label>
+                  <input type="url" value={form.video_url} onChange={e => setForm({ ...form, video_url: e.target.value })}
+                    placeholder="Paste a video URL for the hero banner ad..."
+                    className="w-full px-4 py-3 rounded-xl bg-background border border-input text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <p className="text-xs text-muted-foreground font-body mt-1.5">This video will autoplay on your store's hero banner when this product is featured.</p>
+                  {form.video_url && (
+                    <video src={form.video_url} className="w-full h-32 rounded-xl mt-2 object-cover bg-black" muted autoPlay loop playsInline />
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="px-6 pb-6">
