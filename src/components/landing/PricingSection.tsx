@@ -6,6 +6,23 @@ import { Link } from "react-router-dom";
 
 const plans = [
   {
+    name: "Lite",
+    price: "1,899",
+    period: "/ month",
+    tagline: "For small entrepreneurs",
+    highlight: false,
+    features: [
+      "Up to 20 products",
+      "Public store link",
+      "M-Pesa STK Push",
+      "Basic order management",
+      "Email support",
+      "2-day free trial",
+    ],
+    cta: "Start Lite",
+    color: "border-border",
+  },
+  {
     name: "Starter",
     price: "3,499",
     period: "/ month",
@@ -17,6 +34,7 @@ const plans = [
       "M-Pesa STK Push (Lipana)",
       "Basic analytics dashboard",
       "Order management",
+      "Customer management",
       "Email support",
       "2-day free trial",
     ],
@@ -94,7 +112,7 @@ const PricingSection = () => {
         </div>
 
         {/* Cards */}
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6 max-w-6xl mx-auto">
           {plans.map((plan, i) => (
             <motion.div
               key={plan.name}
@@ -102,7 +120,7 @@ const PricingSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.5 }}
-              className={`relative rounded-3xl border-2 ${plan.color} bg-card p-8 flex flex-col ${
+              className={`relative rounded-3xl border-2 ${plan.color} bg-card p-7 flex flex-col ${
                 plan.highlight ? "shadow-brand scale-[1.02] lg:scale-105" : "shadow-card-custom"
               }`}
             >
@@ -119,7 +137,7 @@ const PricingSection = () => {
                 <p className="text-sm text-muted-foreground font-body mt-1">{plan.tagline}</p>
                 <div className="mt-4 flex items-baseline gap-1">
                   <span className="text-xs text-muted-foreground font-body">KSh</span>
-                  <span className="font-display font-black text-4xl text-foreground">{plan.price}</span>
+                  <span className="font-display font-black text-3xl text-foreground">{plan.price}</span>
                   <span className="text-sm text-muted-foreground font-body">{plan.period}</span>
                 </div>
               </div>
