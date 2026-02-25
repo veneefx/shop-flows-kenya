@@ -21,16 +21,14 @@ const DashboardLayout = () => {
     <div className="min-h-screen bg-background flex">
       <DashboardSidebar />
 
-      {/* Main Content */}
       <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="flex-1 ml-[240px] flex flex-col min-h-screen transition-all duration-300"
+        className="flex-1 ml-[68px] lg:ml-[240px] flex flex-col min-h-screen transition-all duration-200"
         id="dashboard-main"
       >
-        {/* Top Bar */}
-        <header className="sticky top-0 z-30 h-16 bg-background/80 backdrop-blur-md border-b border-border flex items-center justify-between px-6">
+        <header className="sticky top-0 z-30 h-14 bg-background/80 backdrop-blur-md border-b border-border flex items-center justify-between px-6">
           <div />
           <div className="flex items-center gap-3">
             <button className="w-9 h-9 rounded-xl flex items-center justify-center bg-secondary hover:bg-accent transition-colors relative">
@@ -40,8 +38,7 @@ const DashboardLayout = () => {
           </div>
         </header>
 
-        {/* Page */}
-        <div className="flex-1 p-6 lg:p-8">
+        <div className="flex-1 p-4 lg:p-6">
           <Outlet />
         </div>
       </motion.main>
