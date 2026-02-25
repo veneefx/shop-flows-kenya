@@ -19,6 +19,15 @@ import SettingsPage from "./pages/dashboard/SettingsPage";
 import UpgradePage from "./pages/dashboard/UpgradePage";
 import MyStorePage from "./pages/dashboard/MyStorePage";
 import AdminPage from "./pages/dashboard/AdminPage";
+import SalesPage from "./pages/dashboard/SalesPage";
+import InventoryPage from "./pages/dashboard/InventoryPage";
+import CreditPage from "./pages/dashboard/CreditPage";
+import StaffPage from "./pages/dashboard/StaffPage";
+import CashPage from "./pages/dashboard/CashPage";
+import ReportsPage from "./pages/dashboard/ReportsPage";
+import PromotionsPage from "./pages/dashboard/PromotionsPage";
+import DeliveryPage from "./pages/dashboard/DeliveryPage";
+import ActivityLogsPage from "./pages/dashboard/ActivityLogsPage";
 import PublicStorePage from "./pages/PublicStorePage";
 import AIAssistant from "./components/AIAssistant";
 
@@ -38,11 +47,20 @@ const App = () => (
               <Route path="/store/:slug" element={<PublicStorePage />} />
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<DashboardOverview />} />
+                <Route path="sales" element={<SalesPage />} />
+                <Route path="inventory" element={<InventoryPage />} />
                 <Route path="products" element={<ProductsPage />} />
                 <Route path="orders" element={<OrdersPage />} />
                 <Route path="customers" element={<CustomersPage />} />
+                <Route path="credit" element={<CreditPage />} />
+                <Route path="staff" element={<StaffPage />} />
+                <Route path="cash" element={<CashPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="reports" element={<ReportsPage />} />
+                <Route path="promotions" element={<PromotionsPage />} />
+                <Route path="delivery" element={<DeliveryPage />} />
                 <Route path="payments" element={<PaymentsSettings />} />
+                <Route path="activity-logs" element={<ActivityLogsPage />} />
                 <Route path="store" element={<MyStorePage />} />
                 <Route path="upgrade" element={<UpgradePage />} />
                 <Route path="settings" element={<SettingsPage />} />
