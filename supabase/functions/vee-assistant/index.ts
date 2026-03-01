@@ -1,11 +1,11 @@
-import Deno from "https://deno.land/std@0.168.0/node/global.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-Deno.serve(async (req: Request) => {
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -24,7 +24,7 @@ Deno.serve(async (req: Request) => {
         messages: [
           {
             role: "system",
-            content: `You are Vee, a warm, helpful AI assistant for Vee Digital Solutions — Kenya's premier POS & e-commerce platform. You speak naturally and helpfully. You help merchants navigate the dashboard, set up Lipana M-Pesa payments, manage products and orders, understand their analytics, and use their public store. Plans: Starter KSh 3,499/mo, Business KSh 9,999/mo, Enterprise KSh 30,000/mo. Contact: veedigitalsolutions@gmail.com, WhatsApp +254111944791. Be concise, warm, and practical.`,
+            content: `You are Vee, a warm, helpful AI assistant for Vee Digital Solutions — Kenya's premier POS & e-commerce platform. You speak naturally and helpfully. You help merchants navigate the dashboard, set up Lipana M-Pesa payments, manage products and orders, understand their analytics, and use their public store. Plans: Lite KSh 1,899/mo, Starter KSh 3,499/mo, Business KSh 9,999/mo, Enterprise KSh 30,000/mo. Contact: veedigitalsolutions@gmail.com, WhatsApp +254111944791. Be concise, warm, and practical.`,
           },
           ...messages,
         ],
@@ -33,8 +33,20 @@ Deno.serve(async (req: Request) => {
     });
 
     if (!response.ok) {
-      if (response.status === 429) return new Response(JSON.stringify({ error: "Rate limit reached. Please try again shortly." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (response.status === 402) return new Response(JSON.stringify({ error: "AI credits required. Please top up in workspace settings." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit reached. Please try again shortly." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "AI credits required. Please top up in workspace settings." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const errorText = await response.text();
+      console.error("AI gateway error:", response.status, errorText);
       throw new Error(`Gateway error: ${response.status}`);
     }
 

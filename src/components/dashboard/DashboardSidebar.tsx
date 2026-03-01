@@ -37,6 +37,7 @@ const featureMinPlan: Record<string, string> = {
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/dashboard", key: "overview" },
   { icon: ShoppingCart, label: "Sales (POS)", path: "/dashboard/sales", key: "sales" },
+  { icon: Package, label: "Products", path: "/dashboard/products", key: "products" },
   { icon: Boxes, label: "Inventory", path: "/dashboard/inventory", key: "inventory" },
   { icon: ShoppingBag, label: "Orders", path: "/dashboard/orders", key: "orders" },
   { icon: Users, label: "Customers", path: "/dashboard/customers", key: "customers" },
