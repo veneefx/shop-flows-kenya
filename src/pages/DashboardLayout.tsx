@@ -1,11 +1,13 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
-import { Loader2, Bell } from "lucide-react";
+import { Loader2, Bell, Search } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 const DashboardLayout = () => {
   const { user, loading } = useAuth();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   if (loading) {
     return (
@@ -29,7 +31,12 @@ const DashboardLayout = () => {
         id="dashboard-main"
       >
         <header className="sticky top-0 z-30 h-14 bg-background/80 backdrop-blur-md border-b border-border flex items-center justify-between px-6">
-          <div />
+          <div className="flex items-center gap-3">
+            <div className="relative hidden sm:block">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input placeholder="Search..." className="pl-9 pr-4 py-1.5 rounded-lg bg-secondary border border-border text-xs font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring w-48" />
+            </div>
+          </div>
           <div className="flex items-center gap-3">
             <button className="w-9 h-9 rounded-xl flex items-center justify-center bg-secondary hover:bg-accent transition-colors relative">
               <Bell size={16} className="text-muted-foreground" />
