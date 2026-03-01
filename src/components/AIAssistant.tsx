@@ -15,11 +15,33 @@ const AIAssistant = () => {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [streamingIndex, setStreamingIndex] = useState<number | null>(null);
+  const [displayedText, setDisplayedText] = useState("");
+  const fullTextRef = useRef("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, open]);
+  }, [messages, open, displayedText]);
+
+  // Letter-by-letter typing effect
+  useEffect(() => {
+    if (streamingIndex === null) return;
+    const fullText = fullTextRef.current;
+    if (displayedText.length >= fullText.length) return;
+
+    const timer = setTimeout(() => {
+      const nextLen = displayedText.length + 1;
+      const newDisplayed = fullText.slice(0, nextLen);
+      setDisplayedText(newDisplayed);
+      // Update the message in place
+      setMessages(prev =>
+        prev.map((m, i) => i === streamingIndex ? { ...m, content: newDisplayed } : m)
+      );
+    }, 12 + Math.random() * 18); // Variable speed for human feel
+
+    return () => clearTimeout(timer);
+  }, [displayedText, streamingIndex]);
 
   const send = async () => {
     if (!input.trim() || loading) return;
@@ -43,9 +65,15 @@ const AIAssistant = () => {
 
       const reader = resp.body!.getReader();
       const decoder = new TextDecoder();
-      let assistantSoFar = "";
+      let assistantFull = "";
       let textBuffer = "";
+
+      // Add empty assistant message
       setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+      const msgIndex = messages.length + 1; // +1 for user msg just added
+      setStreamingIndex(msgIndex);
+      fullTextRef.current = "";
+      setDisplayedText("");
 
       while (true) {
         const { done, value } = await reader.read();
@@ -64,18 +92,40 @@ const AIAssistant = () => {
             const parsed = JSON.parse(json);
             const delta = parsed.choices?.[0]?.delta?.content || "";
             if (delta) {
-              assistantSoFar += delta;
-              setMessages(prev =>
-                prev.map((m, i) => i === prev.length - 1 && m.role === "assistant" ? { ...m, content: assistantSoFar } : m)
-              );
+              assistantFull += delta;
+              fullTextRef.current = assistantFull;
             }
-          } catch { /* partial */ }
+          } catch { /* partial chunk */ }
         }
       }
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I'm having trouble right now. Please try again!" }]);
+      setStreamingIndex(null);
     }
+
+    // Wait for typing to finish
+    const waitForTyping = () => {
+      return new Promise<void>((resolve) => {
+        const check = () => {
+          if (fullTextRef.current.length <= 0 || displayedText.length >= fullTextRef.current.length) {
+            resolve();
+          } else {
+            setTimeout(check, 50);
+          }
+        };
+        setTimeout(check, 200);
+      });
+    };
+
     setLoading(false);
+    // Streaming index will clear once typing catches up
+    const clearCheck = setInterval(() => {
+      if (!fullTextRef.current || displayedText.length >= fullTextRef.current.length - 5) {
+        setStreamingIndex(null);
+        clearInterval(clearCheck);
+      }
+    }, 100);
+    setTimeout(() => { setStreamingIndex(null); clearInterval(clearCheck); }, 30000);
   };
 
   return (
@@ -143,8 +193,8 @@ const AIAssistant = () => {
                         <span className="w-1.5 h-1.5 rounded-full bg-white/50 animate-bounce" style={{ animationDelay: "300ms" }} />
                       </span>
                     ) : msg.content)}
-                    {/* Typing cursor */}
-                    {loading && msg.role === "assistant" && msg.content && (
+                    {/* Blinking cursor while streaming */}
+                    {streamingIndex === i && msg.role === "assistant" && msg.content && (
                       <span className="inline-block w-0.5 h-4 bg-primary ml-0.5 animate-pulse align-middle" />
                     )}
                   </div>
