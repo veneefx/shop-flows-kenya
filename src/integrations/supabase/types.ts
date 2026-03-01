@@ -14,6 +14,85 @@ export type Database = {
   }
   public: {
     Tables: {
+      credit_accounts: {
+        Row: {
+          balance: number
+          created_at: string
+          credit_limit: number
+          customer_name: string
+          customer_phone: string
+          id: string
+          notes: string | null
+          shop_id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          credit_limit?: number
+          customer_name: string
+          customer_phone: string
+          id?: string
+          notes?: string | null
+          shop_id: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          credit_limit?: number
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          notes?: string | null
+          shop_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_accounts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          credit_account_id: string
+          id: string
+          method: string
+          notes: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          credit_account_id: string
+          id?: string
+          method?: string
+          notes?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          credit_account_id?: string
+          id?: string
+          method?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_payments_credit_account_id_fkey"
+            columns: ["credit_account_id"]
+            isOneToOne: false
+            referencedRelation: "credit_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string

@@ -14,11 +14,11 @@ import { supabase } from "@/integrations/supabase/client";
 import logoImg from "@/assets/logo.png";
 
 const planAccess: Record<string, string[]> = {
-  trial: ["overview", "sales", "inventory", "customers", "cash", "store", "upgrade", "settings"],
-  lite: ["overview", "sales", "inventory", "customers", "cash", "store", "upgrade", "settings"],
-  starter: ["overview", "sales", "inventory", "customers", "orders", "cash", "reports", "store", "upgrade", "settings"],
-  business: ["overview", "sales", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "store", "upgrade", "settings"],
-  enterprise: ["overview", "sales", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "promotions", "delivery", "activitylogs", "store", "upgrade", "settings", "admin"],
+  trial: ["overview", "sales", "products", "inventory", "customers", "cash", "store", "upgrade", "settings"],
+  lite: ["overview", "sales", "products", "inventory", "customers", "cash", "store", "upgrade", "settings"],
+  starter: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "store", "upgrade", "settings"],
+  business: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "store", "upgrade", "settings"],
+  enterprise: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "promotions", "delivery", "activitylogs", "store", "upgrade", "settings", "admin"],
 };
 
 const featureMinPlan: Record<string, string> = {
@@ -37,6 +37,7 @@ const featureMinPlan: Record<string, string> = {
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/dashboard", key: "overview" },
   { icon: ShoppingCart, label: "Sales (POS)", path: "/dashboard/sales", key: "sales" },
+  { icon: Package, label: "Products", path: "/dashboard/products", key: "products" },
   { icon: Boxes, label: "Inventory", path: "/dashboard/inventory", key: "inventory" },
   { icon: ShoppingBag, label: "Orders", path: "/dashboard/orders", key: "orders" },
   { icon: Users, label: "Customers", path: "/dashboard/customers", key: "customers" },
