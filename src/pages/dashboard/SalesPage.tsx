@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { ShoppingCart, Search, Plus, Minus, Trash2, CreditCard, Banknote, Smartphone, Receipt, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShoppingCart, Search, Plus, Minus, Trash2, CreditCard, Banknote, Smartphone, Receipt, Loader2, WifiOff, Wifi, CloudUpload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
+import ReceiptGenerator from "@/components/receipt/ReceiptGenerator";
 
 interface CartItem {
   id: string; name: string; price: number; qty: number; image?: string;
@@ -15,20 +17,25 @@ const SalesPage = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [search, setSearch] = useState("");
   const [shopId, setShopId] = useState<string | null>(null);
+  const [shopData, setShopData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
   const [payMethod, setPayMethod] = useState<"cash" | "mpesa">("cash");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [lastOrder, setLastOrder] = useState<any>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const { isOnline, pendingCount, saveOfflineOrder, syncOrders, syncing } = useOfflineSync();
 
   useEffect(() => {
     if (!user) return;
     const init = async () => {
-      const { data: shop } = await supabase.from("shops").select("id").eq("user_id", user.id).order("created_at").limit(1).maybeSingle();
+      const { data: shop } = await supabase.from("shops").select("*").eq("user_id", user.id).order("created_at").limit(1).maybeSingle();
       if (shop) {
         setShopId(shop.id);
+        setShopData(shop);
         const { data } = await supabase.from("products").select("*").eq("shop_id", shop.id).eq("is_active", true);
         setProducts(data || []);
       }
@@ -58,7 +65,8 @@ const SalesPage = () => {
     if (!shopId || cart.length === 0) return;
     if (!customerPhone.trim()) { toast({ title: "Enter customer phone", variant: "destructive" }); return; }
     setPlacing(true);
-    const { error } = await supabase.from("orders").insert({
+
+    const orderData = {
       shop_id: shopId,
       customer_phone: customerPhone,
       customer_name: customerName || null,
@@ -66,9 +74,23 @@ const SalesPage = () => {
       status: payMethod === "cash" ? "paid" : "pending",
       items: cart.map(c => ({ name: c.name, price: c.price, qty: c.qty })),
       notes: discount > 0 ? `Discount: KSh ${discount}` : null,
-    });
+    };
+
+    if (!isOnline) {
+      // Offline mode
+      const offlineOrder = saveOfflineOrder(orderData);
+      setLastOrder({ ...orderData, id: offlineOrder.id, created_at: offlineOrder.created_at });
+      setShowReceipt(true);
+      setCart([]); setCustomerPhone(""); setCustomerName(""); setDiscount(0);
+      setPlacing(false);
+      return;
+    }
+
+    const { data, error } = await supabase.from("orders").insert(orderData).select().single();
     setPlacing(false);
-    if (!error) {
+    if (!error && data) {
+      setLastOrder(data);
+      setShowReceipt(true);
       toast({ title: "✅ Order placed!", description: `KSh ${total.toLocaleString()} — ${payMethod.toUpperCase()}` });
       setCart([]); setCustomerPhone(""); setCustomerName(""); setDiscount(0);
     } else {
@@ -86,7 +108,21 @@ const SalesPage = () => {
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex items-center justify-between mb-4">
           <h1 className="font-display font-black text-2xl text-foreground">Sales Terminal</h1>
-          <span className="text-xs text-muted-foreground font-body">{products.length} products</span>
+          <div className="flex items-center gap-2">
+            {/* Online/Offline indicator */}
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-display font-semibold ${isOnline ? "bg-accent text-primary" : "bg-orange-100 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400"}`}>
+              {isOnline ? <Wifi size={12} /> : <WifiOff size={12} />}
+              {isOnline ? "Online" : "Offline"}
+            </div>
+            {pendingCount > 0 && (
+              <button onClick={syncOrders} disabled={syncing || !isOnline}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 text-xs font-display font-semibold disabled:opacity-50">
+                {syncing ? <Loader2 size={12} className="animate-spin" /> : <CloudUpload size={12} />}
+                {pendingCount} pending
+              </button>
+            )}
+            <span className="text-xs text-muted-foreground font-body">{products.length} products</span>
+          </div>
         </div>
 
         <div className="relative mb-4">
@@ -185,10 +221,31 @@ const SalesPage = () => {
           <button onClick={placeOrder} disabled={placing || cart.length === 0}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm shadow-brand hover:opacity-90 transition-all disabled:opacity-50">
             {placing ? <Loader2 size={16} className="animate-spin" /> : <Receipt size={16} />}
-            {placing ? "Processing..." : "Complete Sale"}
+            {placing ? "Processing..." : isOnline ? "Complete Sale" : "Save Offline"}
           </button>
         </div>
       </div>
+
+      {/* Receipt Modal */}
+      {showReceipt && lastOrder && (
+        <ReceiptGenerator
+          data={{
+            orderId: lastOrder.id || "offline",
+            shopName: shopData?.shop_name || "My Store",
+            shopLogo: shopData?.logo_url || undefined,
+            shopPaybill: shopData?.lipana_publishable_key || undefined,
+            items: (lastOrder.items as any[]).map((i: any) => ({ name: i.name, price: i.price, qty: i.qty })),
+            subtotal,
+            discount,
+            total: lastOrder.total,
+            paymentMethod: payMethod,
+            customerName: lastOrder.customer_name || undefined,
+            customerPhone: lastOrder.customer_phone,
+            date: new Date(lastOrder.created_at || Date.now()),
+          }}
+          onClose={() => setShowReceipt(false)}
+        />
+      )}
     </div>
   );
 };
