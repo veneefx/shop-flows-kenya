@@ -256,6 +256,74 @@ export type Database = {
         }
         Relationships: []
       }
+      promotions: {
+        Row: {
+          coupon_code: string | null
+          created_at: string
+          description: string | null
+          discount_type: string | null
+          discount_value: number
+          ends_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          min_order_amount: number | null
+          name: string
+          product_ids: string[] | null
+          shop_id: string
+          starts_at: string
+          type: string
+          updated_at: string
+          used_count: number
+        }
+        Insert: {
+          coupon_code?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string | null
+          discount_value?: number
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_order_amount?: number | null
+          name: string
+          product_ids?: string[] | null
+          shop_id: string
+          starts_at?: string
+          type?: string
+          updated_at?: string
+          used_count?: number
+        }
+        Update: {
+          coupon_code?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string | null
+          discount_value?: number
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_order_amount?: number | null
+          name?: string
+          product_ids?: string[] | null
+          shop_id?: string
+          starts_at?: string
+          type?: string
+          updated_at?: string
+          used_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotions_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           business: string | null
