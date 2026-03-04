@@ -17,7 +17,7 @@ const planAccess: Record<string, string[]> = {
   trial: ["overview", "sales", "products", "inventory", "customers", "cash", "store", "upgrade", "settings"],
   lite: ["overview", "sales", "products", "inventory", "customers", "cash", "store", "upgrade", "settings"],
   starter: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "store", "upgrade", "settings"],
-  business: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "store", "upgrade", "settings"],
+  business: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "hardware", "store", "upgrade", "settings"],
   enterprise: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "promotions", "delivery", "activitylogs", "hardware", "store", "upgrade", "settings", "admin"],
 };
 
