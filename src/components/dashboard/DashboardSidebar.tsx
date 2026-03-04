@@ -5,7 +5,7 @@ import {
   BarChart3, CreditCard, Settings, LogOut, Store,
   Sun, Moon, Crown, Shield, Lock, ShoppingCart,
   Boxes, Wallet, UserCog, FileText, Megaphone,
-  Truck, DollarSign, Activity, ChevronLeft, ChevronRight
+  Truck, DollarSign, Activity, ChevronLeft, ChevronRight, Plug
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
