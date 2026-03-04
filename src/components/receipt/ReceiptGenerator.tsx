@@ -14,6 +14,9 @@ interface ReceiptData {
   shopLogo?: string;
   shopPhone?: string;
   shopPaybill?: string;
+  shopTill?: string;
+  shopSlogan?: string;
+  shopLocation?: string;
   items: ReceiptItem[];
   subtotal: number;
   discount: number;
@@ -21,6 +24,7 @@ interface ReceiptData {
   paymentMethod: string;
   customerName?: string;
   customerPhone: string;
+  cashierName?: string;
   date: Date;
 }
 
@@ -29,76 +33,128 @@ interface ReceiptGeneratorProps {
   onClose: () => void;
 }
 
+// Generate abbreviated product name (Naivas-style)
+function abbreviate(name: string): string {
+  const words = name.split(/\s+/);
+  if (words.length === 1) return name.length > 14 ? name.slice(0, 14) : name;
+  const abbr = words.map(w => w.slice(0, 3).toUpperCase()).join(" ");
+  return abbr.length > 16 ? abbr.slice(0, 16) : abbr;
+}
+
+// Dot-fill alignment
+function dotFill(left: string, right: string, width: number = 32): string {
+  const gap = width - left.length - right.length;
+  return left + (gap > 0 ? ".".repeat(gap) : " ") + right;
+}
+
 const ReceiptGenerator = ({ data, onClose }: ReceiptGeneratorProps) => {
   const receiptRef = useRef<HTMLDivElement>(null);
+  const receiptNum = data.orderId.slice(0, 8).toUpperCase();
 
-  const handleDownload = () => {
-    if (!receiptRef.current) return;
-    const printWindow = window.open("", "_blank", "width=400,height=700");
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank", "width=400,height=800");
     if (!printWindow) return;
-    printWindow.document.write(`
-      <html><head><title>Receipt - ${data.orderId.slice(0, 8)}</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Courier New', monospace; padding: 20px; max-width: 320px; margin: 0 auto; font-size: 12px; }
-        .center { text-align: center; }
-        .bold { font-weight: bold; }
-        .line { border-top: 1px dashed #333; margin: 8px 0; }
-        .row { display: flex; justify-content: space-between; padding: 2px 0; }
-        .logo { width: 48px; height: 48px; margin: 0 auto 8px; }
-        h1 { font-size: 16px; margin-bottom: 4px; }
-        .small { font-size: 10px; color: #666; }
-        .total-row { font-size: 16px; font-weight: bold; padding: 4px 0; }
-        @media print { body { padding: 0; } }
-      </style></head><body>
+    const itemsHtml = data.items.map(item => {
+      const abbr = abbreviate(item.name);
+      const total = (item.price * item.qty).toLocaleString();
+      return `
+        <div class="item-row">
+          <span>${abbr}</span>
+          <span class="dots"></span>
+          <span>${item.qty} x ${item.price.toLocaleString()}</span>
+          <span class="dots"></span>
+          <span class="bold">${total}</span>
+        </div>
+        <div class="item-detail">@ KES ${item.price.toLocaleString()} each</div>`;
+    }).join("");
+
+    printWindow.document.write(`<html><head><title>Receipt #${receiptNum}</title>
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:'Courier New',monospace; max-width:320px; margin:0 auto; padding:12px; font-size:11px; color:#000; }
+      .center { text-align:center; }
+      .bold { font-weight:bold; }
+      .sep { border-top:1px dashed #555; margin:6px 0; }
+      .double-sep { border-top:2px solid #000; margin:6px 0; }
+      .logo { width:48px; height:48px; margin:0 auto 4px; display:block; }
+      .shop-name { font-size:16px; font-weight:900; text-transform:uppercase; letter-spacing:1px; }
+      .shop-intro { font-size:9px; color:#555; margin-top:2px; }
+      .meta { font-size:9px; color:#666; line-height:1.5; }
+      .header-row { display:flex; justify-content:space-between; font-weight:bold; font-size:10px; padding:2px 0; }
+      .item-row { display:flex; align-items:baseline; gap:2px; padding:1px 0; font-size:11px; }
+      .item-row .dots { flex:1; border-bottom:1px dotted #999; margin:0 2px; min-width:8px; }
+      .item-detail { font-size:9px; color:#777; padding-left:8px; }
+      .total-section { padding:4px 0; }
+      .total-row { display:flex; justify-content:space-between; padding:1px 0; font-size:11px; }
+      .grand-total { font-size:15px; font-weight:900; padding:4px 0; }
+      .payment-box { background:#f5f5f5; padding:6px; border-radius:4px; margin:4px 0; }
+      .footer { font-size:9px; color:#666; line-height:1.6; margin-top:4px; }
+      .footer .thanks { font-size:11px; font-weight:bold; color:#000; }
+      @media print { body { padding:0; } }
+    </style></head><body>
       <div class="center">
-        <img src="${data.shopLogo || logoImg}" class="logo" alt="logo" onerror="this.style.display='none'" />
-        <h1>${data.shopName}</h1>
-        <p class="small">Receipt #${data.orderId.slice(0, 8).toUpperCase()}</p>
-        <p class="small">${data.date.toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" })} ${data.date.toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })}</p>
-        ${data.customerName ? `<p class="small">Customer: ${data.customerName}</p>` : ""}
-        <p class="small">Phone: ${data.customerPhone}</p>
+        <img src="${data.shopLogo || logoImg}" class="logo" alt="" onerror="this.style.display='none'" />
+        <div class="shop-name">${data.shopName}</div>
+        ${data.shopSlogan ? `<div class="shop-intro">${data.shopSlogan}</div>` : ""}
+        ${data.shopLocation ? `<div class="meta">${data.shopLocation}</div>` : ""}
+        ${data.shopPhone ? `<div class="meta">Tel: ${data.shopPhone}</div>` : ""}
       </div>
-      <div class="line"></div>
-      <div class="row bold"><span>Item</span><span>Total</span></div>
-      <div class="line"></div>
-      ${data.items.map(item => `
-        <div class="row"><span>${item.name} x${item.qty}</span><span>KSh ${(item.price * item.qty).toLocaleString()}</span></div>
-        <div class="small" style="padding-left:8px">@ KSh ${item.price.toLocaleString()} each</div>
-      `).join("")}
-      <div class="line"></div>
-      <div class="row"><span>Subtotal</span><span>KSh ${data.subtotal.toLocaleString()}</span></div>
-      ${data.discount > 0 ? `<div class="row"><span>Discount</span><span>-KSh ${data.discount.toLocaleString()}</span></div>` : ""}
-      <div class="line"></div>
-      <div class="row total-row"><span>TOTAL</span><span>KSh ${data.total.toLocaleString()}</span></div>
-      <div class="line"></div>
-      <div class="row"><span>Payment</span><span>${data.paymentMethod.toUpperCase()}</span></div>
-      ${data.shopPaybill ? `<div class="line"></div><div class="center"><p class="bold">Paybill: ${data.shopPaybill}</p></div>` : ""}
-      <div class="line"></div>
-      <div class="center">
-        <p class="bold">Thank you for shopping with us! 🙏</p>
-        <p class="small" style="margin-top:4px">Powered by Vee Digital Solutions</p>
-        <p class="small">www.veedigital.co.ke</p>
-        <p class="small" style="margin-top:8px">© ${new Date().getFullYear()} ${data.shopName}. All rights reserved.</p>
+      <div class="sep"></div>
+      <div class="meta center">
+        Receipt #: ${receiptNum}<br/>
+        Date: ${data.date.toLocaleDateString("en-KE", { day:"numeric", month:"long", year:"numeric" })} ${data.date.toLocaleTimeString("en-KE", { hour:"2-digit", minute:"2-digit" })}<br/>
+        ${data.cashierName ? `Cashier: ${data.cashierName}<br/>` : ""}
+        ${data.customerName ? `Customer: ${data.customerName}<br/>` : ""}
+        Phone: ${data.customerPhone}
       </div>
-      </body></html>
-    `);
+      <div class="double-sep"></div>
+      <div class="header-row"><span>ITEM</span><span>QTY x PRICE</span><span>TOTAL</span></div>
+      <div class="sep"></div>
+      ${itemsHtml}
+      <div class="double-sep"></div>
+      <div class="total-section">
+        <div class="total-row"><span>Subtotal</span><span>KES ${data.subtotal.toLocaleString()}</span></div>
+        ${data.discount > 0 ? `<div class="total-row"><span>Discount</span><span>-KES ${data.discount.toLocaleString()}</span></div>` : ""}
+        <div class="sep"></div>
+        <div class="total-row grand-total"><span>TOTAL</span><span>KES ${data.total.toLocaleString()}</span></div>
+      </div>
+      <div class="sep"></div>
+      <div class="total-row"><span>Payment</span><span class="bold">${data.paymentMethod.toUpperCase()}</span></div>
+      ${(data.shopPaybill || data.shopTill) ? `
+        <div class="sep"></div>
+        <div class="payment-box center">
+          ${data.shopPaybill ? `<div class="bold">M-PESA PAYBILL: ${data.shopPaybill}</div>` : ""}
+          ${data.shopTill ? `<div class="bold">M-PESA TILL: ${data.shopTill}</div>` : ""}
+        </div>
+      ` : ""}
+      <div class="sep"></div>
+      <div class="center footer">
+        <div class="thanks">Thank you for shopping with us! 🙏</div>
+        ${data.shopSlogan ? `<div>"${data.shopSlogan}"</div>` : ""}
+        <div>Powered by Vee Digital Solutions</div>
+        <div>www.veedigital.co.ke</div>
+        <div style="margin-top:4px">© ${new Date().getFullYear()} ${data.shopName}. All rights reserved.</div>
+      </div>
+    </body></html>`);
     printWindow.document.close();
-    setTimeout(() => { printWindow.print(); }, 500);
+    setTimeout(() => printWindow.print(), 500);
   };
 
   const handleWhatsApp = () => {
-    const items = data.items.map(i => `• ${i.name} x${i.qty} — KSh ${(i.price * i.qty).toLocaleString()}`).join("\n");
+    const items = data.items.map(i => `• ${i.name} x${i.qty} — KES ${(i.price * i.qty).toLocaleString()}`).join("\n");
     const msg = encodeURIComponent(
       `🧾 *Receipt from ${data.shopName}*\n` +
-      `📅 ${data.date.toLocaleDateString("en-KE")}\n\n` +
+      `📅 ${data.date.toLocaleDateString("en-KE")} ${data.date.toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" })}\n` +
+      `Receipt #${receiptNum}\n\n` +
       `${items}\n\n` +
-      `Subtotal: KSh ${data.subtotal.toLocaleString()}\n` +
-      (data.discount > 0 ? `Discount: -KSh ${data.discount.toLocaleString()}\n` : "") +
-      `*Total: KSh ${data.total.toLocaleString()}*\n` +
+      `Subtotal: KES ${data.subtotal.toLocaleString()}\n` +
+      (data.discount > 0 ? `Discount: -KES ${data.discount.toLocaleString()}\n` : "") +
+      `*TOTAL: KES ${data.total.toLocaleString()}*\n` +
       `Payment: ${data.paymentMethod.toUpperCase()}\n\n` +
-      (data.shopPaybill ? `Paybill: ${data.shopPaybill}\n\n` : "") +
-      `Thank you for shopping with us! 🙏\n` +
+      (data.shopPaybill ? `Paybill: ${data.shopPaybill}\n` : "") +
+      (data.shopTill ? `Till: ${data.shopTill}\n` : "") +
+      `\nThank you for shopping with us! 🙏\n` +
+      (data.shopSlogan ? `"${data.shopSlogan}"\n` : "") +
       `Powered by Vee Digital Solutions`
     );
     const phone = data.customerPhone.startsWith("0") ? "254" + data.customerPhone.slice(1) : data.customerPhone;
@@ -110,49 +166,78 @@ const ReceiptGenerator = ({ data, onClose }: ReceiptGeneratorProps) => {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-sm bg-card rounded-2xl border border-border shadow-2xl overflow-hidden">
         {/* Receipt preview */}
-        <div ref={receiptRef} className="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
+        <div ref={receiptRef} className="p-6 space-y-3 max-h-[60vh] overflow-y-auto font-mono text-xs">
           <div className="text-center">
             <img src={data.shopLogo || logoImg} alt="" className="w-12 h-12 rounded-xl mx-auto mb-2 object-contain" />
-            <h2 className="font-display font-black text-lg text-foreground">{data.shopName}</h2>
-            <p className="text-[10px] text-muted-foreground font-mono">#{data.orderId.slice(0, 8).toUpperCase()}</p>
-            <p className="text-xs text-muted-foreground font-body">{data.date.toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+            <h2 className="font-display font-black text-lg text-foreground uppercase tracking-wide">{data.shopName}</h2>
+            {data.shopSlogan && <p className="text-[10px] text-muted-foreground italic">{data.shopSlogan}</p>}
+            <p className="text-[10px] text-muted-foreground mt-1">Receipt #{receiptNum}</p>
+            <p className="text-[10px] text-muted-foreground">{data.date.toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+            {data.cashierName && <p className="text-[10px] text-muted-foreground">Cashier: {data.cashierName}</p>}
           </div>
 
-          <div className="border-t border-dashed border-border pt-3 space-y-1.5">
+          <div className="border-t-2 border-foreground pt-2">
+            <div className="flex justify-between text-[10px] font-bold text-foreground mb-1 px-1">
+              <span>ITEM</span><span>TOTAL</span>
+            </div>
+            <div className="border-t border-dashed border-border" />
+          </div>
+
+          <div className="space-y-1.5">
             {data.items.map((item, i) => (
-              <div key={i} className="flex justify-between text-xs">
-                <span className="font-body text-foreground">{item.name} <span className="text-muted-foreground">x{item.qty}</span></span>
-                <span className="font-display font-semibold text-foreground">KSh {(item.price * item.qty).toLocaleString()}</span>
+              <div key={i}>
+                <div className="flex justify-between text-xs text-foreground">
+                  <span className="font-semibold">{abbreviate(item.name)}</span>
+                  <span className="font-bold">KES {(item.price * item.qty).toLocaleString()}</span>
+                </div>
+                <p className="text-[9px] text-muted-foreground pl-1">{item.qty} x KES {item.price.toLocaleString()}</p>
               </div>
             ))}
           </div>
 
-          <div className="border-t border-dashed border-border pt-2 space-y-1">
+          <div className="border-t-2 border-foreground pt-2 space-y-1">
             <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground font-body">Subtotal</span>
-              <span className="font-display font-semibold text-foreground">KSh {data.subtotal.toLocaleString()}</span>
+              <span className="text-muted-foreground">Subtotal</span>
+              <span className="font-semibold text-foreground">KES {data.subtotal.toLocaleString()}</span>
             </div>
             {data.discount > 0 && (
               <div className="flex justify-between text-xs">
-                <span className="text-red-400 font-body">Discount</span>
-                <span className="font-display font-semibold text-red-400">-KSh {data.discount.toLocaleString()}</span>
+                <span className="text-red-400">Discount</span>
+                <span className="font-semibold text-red-400">-KES {data.discount.toLocaleString()}</span>
               </div>
             )}
-            <div className="flex justify-between text-sm pt-1 border-t border-dashed border-border">
+            <div className="border-t border-dashed border-border" />
+            <div className="flex justify-between text-sm pt-1">
               <span className="font-display font-black text-foreground">TOTAL</span>
-              <span className="font-display font-black text-primary">KSh {data.total.toLocaleString()}</span>
+              <span className="font-display font-black text-primary">KES {data.total.toLocaleString()}</span>
             </div>
           </div>
 
-          <div className="text-center pt-2 border-t border-dashed border-border">
-            <p className="text-xs font-display font-semibold text-foreground">Thank you for shopping with us! 🙏</p>
-            <p className="text-[10px] text-muted-foreground font-body mt-1">Powered by Vee Digital Solutions</p>
+          <div className="border-t border-dashed border-border pt-2">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Payment</span>
+              <span className="font-bold text-foreground">{data.paymentMethod.toUpperCase()}</span>
+            </div>
+          </div>
+
+          {(data.shopPaybill || data.shopTill) && (
+            <div className="p-2 rounded-lg bg-secondary text-center space-y-0.5">
+              {data.shopPaybill && <p className="text-xs font-bold text-foreground">PAYBILL: {data.shopPaybill}</p>}
+              {data.shopTill && <p className="text-xs font-bold text-foreground">TILL: {data.shopTill}</p>}
+            </div>
+          )}
+
+          <div className="text-center pt-2 border-t border-dashed border-border space-y-1">
+            <p className="text-xs font-display font-bold text-foreground">Thank you for shopping with us! 🙏</p>
+            {data.shopSlogan && <p className="text-[10px] text-muted-foreground italic">"{data.shopSlogan}"</p>}
+            <p className="text-[9px] text-muted-foreground">Powered by Vee Digital Solutions • www.veedigital.co.ke</p>
+            <p className="text-[9px] text-muted-foreground">© {new Date().getFullYear()} {data.shopName}. All rights reserved.</p>
           </div>
         </div>
 
         {/* Actions */}
         <div className="p-4 border-t border-border flex gap-2">
-          <button onClick={handleDownload}
+          <button onClick={handlePrint}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground font-display font-semibold text-xs hover:opacity-90 transition-all">
             <Printer size={14} /> Print / Download
           </button>

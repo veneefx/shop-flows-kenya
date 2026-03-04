@@ -98,7 +98,14 @@ const SalesPage = () => {
     }
   };
 
-  const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || (p.sku || "").toLowerCase().includes(search.toLowerCase()));
+  // Fuzzy search: match any word the user types
+  const filtered = products.filter(p => {
+    const q = search.toLowerCase().trim();
+    if (!q) return true;
+    const words = q.split(/\s+/);
+    const target = `${p.name} ${p.sku || ""} ${p.category || ""} ${p.brand || ""}`.toLowerCase();
+    return words.every(w => target.includes(w));
+  });
 
   if (loading) return <div className="h-64 rounded-2xl bg-card border border-border animate-pulse" />;
 

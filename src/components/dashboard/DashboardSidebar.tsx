@@ -5,7 +5,7 @@ import {
   BarChart3, CreditCard, Settings, LogOut, Store,
   Sun, Moon, Crown, Shield, Lock, ShoppingCart,
   Boxes, Wallet, UserCog, FileText, Megaphone,
-  Truck, DollarSign, Activity, ChevronLeft, ChevronRight
+  Truck, DollarSign, Activity, ChevronLeft, ChevronRight, Plug
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,8 +17,8 @@ const planAccess: Record<string, string[]> = {
   trial: ["overview", "sales", "products", "inventory", "customers", "cash", "store", "upgrade", "settings"],
   lite: ["overview", "sales", "products", "inventory", "customers", "cash", "store", "upgrade", "settings"],
   starter: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "store", "upgrade", "settings"],
-  business: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "store", "upgrade", "settings"],
-  enterprise: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "promotions", "delivery", "activitylogs", "store", "upgrade", "settings", "admin"],
+  business: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "hardware", "store", "upgrade", "settings"],
+  enterprise: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "promotions", "delivery", "activitylogs", "hardware", "store", "upgrade", "settings", "admin"],
 };
 
 // Staff role access: only see what their role allows
@@ -39,6 +39,7 @@ const featureMinPlan: Record<string, string> = {
   promotions: "Enterprise",
   delivery: "Enterprise",
   activitylogs: "Enterprise",
+  hardware: "Professional",
   admin: "Enterprise",
 };
 
@@ -76,6 +77,7 @@ const navSections = [
     items: [
       { icon: CreditCard, label: "Payments", path: "/dashboard/payments", key: "payments" },
       { icon: Activity, label: "Activity Logs", path: "/dashboard/activity-logs", key: "activitylogs" },
+      { icon: Plug, label: "Hardware", path: "/dashboard/hardware", key: "hardware" },
       { icon: Store, label: "My Store", path: "/dashboard/store", key: "store" },
       { icon: Crown, label: "Upgrade", path: "/dashboard/upgrade", key: "upgrade" },
       { icon: Settings, label: "Settings", path: "/dashboard/settings", key: "settings" },

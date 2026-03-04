@@ -65,6 +65,15 @@ const ProductsPage = () => {
 
   // Barcode scanner
   const startScanner = useCallback(async () => {
+    // Request camera permission using browser-native getUserMedia
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      stream.getTracks().forEach(t => t.stop()); // Release immediately, html5-qrcode will re-acquire
+    } catch (err) {
+      toast({ title: "Camera permission denied", description: "Please enable camera in your browser settings (Site Settings → Camera → Allow).", variant: "destructive" });
+      return;
+    }
+
     setScanning(true);
     try {
       const scanner = new Html5Qrcode("barcode-scanner");
@@ -73,23 +82,21 @@ const ProductsPage = () => {
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 120 } },
         (decodedText) => {
-          // Search for product by SKU or name
           const found = products.find(p => p.sku === decodedText || p.name.toLowerCase().includes(decodedText.toLowerCase()));
           if (found) {
             setSearch(decodedText);
             toast({ title: `Found: ${found.name}`, description: `SKU: ${found.sku || "N/A"} — Stock: ${found.stock}` });
           } else {
-            // Auto-fill SKU in add form
             setForm(prev => ({ ...prev, sku: decodedText }));
             setShowForm(true);
             toast({ title: "New barcode scanned", description: `SKU: ${decodedText} — Create a new product` });
           }
           stopScanner();
         },
-        () => {} // ignore errors during scanning
+        () => {}
       );
     } catch (err) {
-      toast({ title: "Camera error", description: "Could not access camera. Check permissions.", variant: "destructive" });
+      toast({ title: "Camera error", description: "Could not start camera scanner.", variant: "destructive" });
       setScanning(false);
     }
   }, [products]);
