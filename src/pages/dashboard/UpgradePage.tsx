@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Crown, Check, Zap, ArrowRight, Clock, AlertCircle, Upload, ExternalLink } from "lucide-react";
+import { Crown, Check, Zap, ArrowRight, Clock, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -8,29 +8,38 @@ import { toast } from "@/hooks/use-toast";
 const plans = [
   {
     name: "Starter",
-    price: 3499,
+    price: 1499,
     period: "/ month",
-    tagline: "Perfect for new businesses",
-    features: ["Up to 50 products", "Public store link", "M-Pesa STK Push", "Basic analytics", "Order management", "Email support"],
+    tagline: "For small kiosks & solo vendors",
+    features: ["Up to 30 products", "Basic POS terminal", "M-Pesa payments", "Order management", "WhatsApp receipts", "Email support"],
     color: "border-border",
     highlight: false,
   },
   {
     name: "Business",
-    price: 9999,
+    price: 3499,
     period: "/ month",
-    tagline: "For growing businesses",
+    tagline: "Launch your online store",
     badge: "Most Popular",
-    features: ["Unlimited products", "Advanced analytics", "WhatsApp alerts", "CSV export", "Coupon & discount system", "Priority support", "Custom domain support"],
+    features: ["Unlimited products", "Public store link", "Advanced analytics", "Coupon & discounts", "Credit management", "Staff accounts", "CSV export", "Priority support"],
     color: "border-primary",
     highlight: true,
+  },
+  {
+    name: "Professional",
+    price: 9999,
+    period: "/ month",
+    tagline: "For growing retail businesses",
+    features: ["Everything in Business", "Offline POS mode", "Hardware integration", "Promotions engine", "Delivery tracking", "Multi-location support", "Custom branding", "WhatsApp alerts"],
+    color: "border-border",
+    highlight: false,
   },
   {
     name: "Enterprise",
     price: 30000,
     period: "/ month",
     tagline: "For large-scale operations",
-    features: ["Everything in Business", "Multi-user access", "Multi-shop management", "API access", "Custom features", "Dedicated support manager", "White-label options"],
+    features: ["Everything in Professional", "Multi-user access", "Multi-shop management", "API access", "Activity logs & audit", "Custom features", "Dedicated support manager", "White-label options"],
     color: "border-border",
     highlight: false,
   },
@@ -50,7 +59,7 @@ const UpgradePage = () => {
     const init = async () => {
       const [{ data: p }, { data: s }] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", user.id).single(),
-        supabase.from("subscriptions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).single(),
+        supabase.from("subscriptions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       ]);
       setProfile(p);
       setSubscription(s);
@@ -86,7 +95,7 @@ const UpgradePage = () => {
     <div className="space-y-8">
       <div>
         <h1 className="font-display font-black text-2xl lg:text-3xl text-foreground">Upgrade Plan</h1>
-        <p className="text-muted-foreground font-body text-sm mt-1">Upgrade to unlock more features and grow your business</p>
+        <p className="text-muted-foreground font-body text-sm mt-1">Choose the perfect plan for your business size</p>
       </div>
 
       {/* Current plan banner */}
@@ -111,11 +120,11 @@ const UpgradePage = () => {
       </motion.div>
 
       {/* Plan cards */}
-      <div className="grid md:grid-cols-3 gap-5">
+      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-5">
         {plans.map((plan, i) => (
-          <motion.div key={plan.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+          <motion.div key={plan.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
             onClick={() => setSelectedPlan(selectedPlan === plan.name ? null : plan.name)}
-            className={`relative rounded-2xl border-2 p-6 cursor-pointer transition-all duration-300 ${
+            className={`relative rounded-2xl border-2 p-5 cursor-pointer transition-all duration-300 ${
               selectedPlan === plan.name ? "border-primary shadow-brand scale-[1.02]" : plan.color
             } bg-card`}>
             {plan.badge && (
@@ -134,10 +143,10 @@ const UpgradePage = () => {
             <p className="text-xs text-muted-foreground font-body mt-0.5">{plan.tagline}</p>
             <div className="mt-3 flex items-baseline gap-1">
               <span className="text-xs text-muted-foreground">KSh</span>
-              <span className="font-display font-black text-3xl text-foreground">{plan.price.toLocaleString()}</span>
+              <span className="font-display font-black text-2xl text-foreground">{plan.price.toLocaleString()}</span>
               <span className="text-xs text-muted-foreground font-body">{plan.period}</span>
             </div>
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-4 space-y-1.5">
               {plan.features.map(f => (
                 <li key={f} className="flex items-start gap-2">
                   <div className="mt-0.5 w-4 h-4 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
@@ -169,7 +178,7 @@ const UpgradePage = () => {
               className="w-full px-4 py-3 rounded-xl bg-background border border-input text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
           <button onClick={handleUpgrade} disabled={submitting}
-            className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm shadow-brand hover:bg-brand-light transition-all disabled:opacity-60">
+            className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm shadow-brand hover:opacity-90 transition-all disabled:opacity-60">
             {submitting ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <ArrowRight size={16} />}
             Submit Upgrade Request — {selectedPlan}
           </button>
