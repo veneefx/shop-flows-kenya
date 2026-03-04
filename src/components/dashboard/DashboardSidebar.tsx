@@ -77,6 +77,7 @@ const navSections = [
     items: [
       { icon: CreditCard, label: "Payments", path: "/dashboard/payments", key: "payments" },
       { icon: Activity, label: "Activity Logs", path: "/dashboard/activity-logs", key: "activitylogs" },
+      { icon: Plug, label: "Hardware", path: "/dashboard/hardware", key: "hardware" },
       { icon: Store, label: "My Store", path: "/dashboard/store", key: "store" },
       { icon: Crown, label: "Upgrade", path: "/dashboard/upgrade", key: "upgrade" },
       { icon: Settings, label: "Settings", path: "/dashboard/settings", key: "settings" },
