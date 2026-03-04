@@ -18,7 +18,7 @@ const planAccess: Record<string, string[]> = {
   lite: ["overview", "sales", "products", "inventory", "customers", "cash", "store", "upgrade", "settings"],
   starter: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "store", "upgrade", "settings"],
   business: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "store", "upgrade", "settings"],
-  enterprise: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "promotions", "delivery", "activitylogs", "store", "upgrade", "settings", "admin"],
+  enterprise: ["overview", "sales", "products", "inventory", "customers", "orders", "cash", "reports", "credit", "staff", "analytics", "payments", "promotions", "delivery", "activitylogs", "hardware", "store", "upgrade", "settings", "admin"],
 };
 
 // Staff role access: only see what their role allows
