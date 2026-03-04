@@ -39,6 +39,7 @@ const featureMinPlan: Record<string, string> = {
   promotions: "Enterprise",
   delivery: "Enterprise",
   activitylogs: "Enterprise",
+  hardware: "Professional",
   admin: "Enterprise",
 };
 
