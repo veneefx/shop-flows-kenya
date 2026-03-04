@@ -28,6 +28,7 @@ import ReportsPage from "./pages/dashboard/ReportsPage";
 import PromotionsPage from "./pages/dashboard/PromotionsPage";
 import DeliveryPage from "./pages/dashboard/DeliveryPage";
 import ActivityLogsPage from "./pages/dashboard/ActivityLogsPage";
+import HardwareSettingsPage from "./pages/dashboard/HardwareSettingsPage";
 import PublicStorePage from "./pages/PublicStorePage";
 import AIAssistant from "./components/AIAssistant";
 
