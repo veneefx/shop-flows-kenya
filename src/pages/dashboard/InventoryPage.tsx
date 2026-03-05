@@ -92,6 +92,15 @@ const InventoryPage = () => {
     setSaving(false);
     if (!error) {
       setProducts(prev => prev.map(p => p.id === adjusting.id ? { ...p, stock: newStock } : p));
+      await logActivity({
+        shopId: shopId || "",
+        eventType: "inventory",
+        action: "stock_adjusted",
+        entityType: "product",
+        entityId: adjusting.id,
+        message: `Stock updated for ${adjusting.name}: ${adjusting.stock} → ${newStock}`,
+        metadata: { delta, reason: adjusting.reason || null },
+      });
       toast({ title: `Stock updated: ${adjusting.name}`, description: `${adjusting.stock} → ${newStock} (${delta > 0 ? "+" : ""}${delta})` });
       setAdjusting(null);
     } else {
