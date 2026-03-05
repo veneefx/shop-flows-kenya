@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Html5Qrcode } from "html5-qrcode";
+import { getPreferredCameraId, requestNativeCameraPermission } from "@/lib/barcodeScanner";
+import { logActivity } from "@/lib/activity";
 
 const InventoryPage = () => {
   const { user } = useAuth();
