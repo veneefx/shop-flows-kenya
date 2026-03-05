@@ -129,6 +129,8 @@ const ProductsPage = () => {
   const openAdd = () => {
     setEditProduct(null);
     setForm({ name: "", price: "", stock: "", category: "", description: "", image_url: "", is_active: true, sizes: "", colors: "", brand: "", sku: "", weight: "", is_featured: false, video_url: "", is_adult: false });
+    setFormImages([]);
+    setPrimaryImageIndex(0);
     setShowForm(true);
   };
 
@@ -137,12 +139,14 @@ const ProductsPage = () => {
     setForm({
       name: p.name, price: String(p.price), stock: String(p.stock),
       category: p.category || "", description: p.description || "",
-      image_url: p.images?.[0] || "", is_active: p.is_active ?? true,
+      image_url: "", is_active: p.is_active ?? true,
       sizes: (p.sizes || []).join(", "), colors: (p.colors || []).join(", "),
       brand: p.brand || "", sku: p.sku || "", weight: p.weight || "",
       is_featured: p.is_featured ?? false,
       video_url: p.video_url || "", is_adult: p.is_adult ?? false,
     });
+    setFormImages(p.images || []);
+    setPrimaryImageIndex(0);
     setShowForm(true);
   };
 
