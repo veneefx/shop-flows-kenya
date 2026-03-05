@@ -37,8 +37,7 @@ const HardwareSettingsPage = () => {
 
   const requestCamera = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      stream.getTracks().forEach(t => t.stop());
+      await requestNativeCameraPermission();
       setCameraPermission("granted");
       toast({ title: "✅ Camera access granted!" });
     } catch {
