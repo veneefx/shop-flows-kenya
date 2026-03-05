@@ -158,10 +158,17 @@ const ProductsPage = () => {
     setSaving(true);
     const sizesArr = form.sizes ? form.sizes.split(",").map(s => s.trim()).filter(Boolean) : [];
     const colorsArr = form.colors ? form.colors.split(",").map(s => s.trim()).filter(Boolean) : [];
+    const orderedImages = formImages.length > 0
+      ? [
+          formImages[Math.max(0, Math.min(primaryImageIndex, formImages.length - 1))],
+          ...formImages.filter((_, idx) => idx !== Math.max(0, Math.min(primaryImageIndex, formImages.length - 1))),
+        ]
+      : [];
+
     const payload = {
       name: form.name, price: parseFloat(form.price) || 0, stock: parseInt(form.stock) || 0,
       category: form.category || null, description: form.description || null,
-      images: form.image_url ? [form.image_url] : [], is_active: form.is_active, shop_id: shopId,
+      images: orderedImages, is_active: form.is_active, shop_id: shopId,
       sizes: sizesArr, colors: colorsArr, brand: form.brand || null,
       sku: form.sku || null, weight: form.weight || null, is_featured: form.is_featured,
       video_url: form.video_url || null, is_adult: form.is_adult,
