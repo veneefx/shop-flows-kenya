@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Printer, ScanLine, Camera, Bluetooth, Wifi, Usb, Check, X, Volume2, Settings, AlertCircle } from "lucide-react";
+import { Printer, ScanLine, Camera, Bluetooth, Wifi, Usb, Check, X, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Html5Qrcode } from "html5-qrcode";
+import { getPreferredCameraId, requestNativeCameraPermission } from "@/lib/barcodeScanner";
 
 const HardwareSettingsPage = () => {
   const [printerType, setPrinterType] = useState<"usb" | "bluetooth" | "wifi">("usb");
