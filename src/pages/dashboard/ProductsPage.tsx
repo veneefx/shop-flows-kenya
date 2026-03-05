@@ -208,11 +208,13 @@ const ProductsPage = () => {
     toast({ title: p.is_featured ? "Removed from featured" : "Marked as featured!" });
   };
 
-  const filtered = products.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    (p.category || "").toLowerCase().includes(search.toLowerCase()) ||
-    (p.sku || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = products.filter((p) => {
+    const q = search.toLowerCase().trim();
+    if (!q) return true;
+    const words = q.split(/\s+/);
+    const target = `${p.name} ${p.category || ""} ${p.sku || ""} ${p.brand || ""}`.toLowerCase();
+    return words.every((word) => target.includes(word));
+  });
 
   return (
     <div className="space-y-6">
