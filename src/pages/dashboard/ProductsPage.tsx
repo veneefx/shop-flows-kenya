@@ -391,7 +391,7 @@ const ProductsPage = () => {
 
                   for (const file of files) {
                     if (file.size > 5 * 1024 * 1024) {
-                      toast({ title: `${file.name} skipped (max 5MB)", variant: "destructive" });
+                      toast({ title: `${file.name} skipped (max 5MB)`, variant: "destructive" });
                       continue;
                     }
 
