@@ -111,7 +111,7 @@ const ProductsPage = () => {
       });
       setScanning(false);
     }
-  }, [products, stopScanner]);
+  }, [products]);
 
   const stopScanner = useCallback(() => {
     if (scannerRef.current) {
