@@ -329,37 +329,87 @@ const ProductsPage = () => {
             </div>
 
             <div className="flex-1 p-6 space-y-4">
-              {/* Image */}
+              {/* Images */}
               <div>
-                <label className="block text-xs font-display font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Product Image</label>
-                {form.image_url && (
-                  <div className="relative w-full h-48 rounded-xl overflow-hidden bg-secondary mb-3">
-                    <img src={form.image_url} alt="Preview" className="w-full h-full object-cover" />
-                    <button onClick={() => setForm({ ...form, image_url: "" })} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80"><X size={14} /></button>
+                <label className="block text-xs font-display font-semibold text-muted-foreground mb-1.5 uppercase tracking-wide">Product Images</label>
+
+                {formImages.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {formImages.map((img, index) => (
+                      <div key={`${img}-${index}`} className={`relative h-24 rounded-xl overflow-hidden border ${primaryImageIndex === index ? "border-primary" : "border-border"}`}>
+                        <img src={img} alt="Product" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setPrimaryImageIndex(index)}
+                          className={`absolute left-1 top-1 px-1.5 py-0.5 rounded text-[10px] font-display font-semibold ${primaryImageIndex === index ? "bg-primary text-primary-foreground" : "bg-background/90 text-foreground"}`}
+                        >
+                          {primaryImageIndex === index ? "Display" : "Set"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = formImages.filter((_, i) => i !== index);
+                            setFormImages(next);
+                            if (primaryImageIndex >= next.length) setPrimaryImageIndex(Math.max(0, next.length - 1));
+                          }}
+                          className="absolute right-1 top-1 w-6 h-6 rounded-full bg-background/90 text-foreground flex items-center justify-center"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
+
                 <div className="flex gap-2">
                   <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
                     className="flex items-center gap-2 px-4 py-3 rounded-xl bg-accent text-accent-foreground font-display font-semibold text-sm hover:bg-primary hover:text-primary-foreground transition-all disabled:opacity-60">
                     {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
                     {uploading ? "Uploading..." : "Upload"}
                   </button>
-                  <input type="url" value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} placeholder="Or paste image URL..."
+                  <input type="url" value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} placeholder="Paste image URL..."
                     className="flex-1 px-4 py-3 rounded-xl bg-background border border-input text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!form.image_url.trim()) return;
+                      setFormImages((prev) => [...prev, form.image_url.trim()]);
+                      setForm({ ...form, image_url: "" });
+                    }}
+                    className="px-4 py-3 rounded-xl bg-secondary text-foreground font-display font-semibold text-sm hover:bg-accent transition-all"
+                  >
+                    <Check size={15} />
+                  </button>
                 </div>
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  if (file.size > 5 * 1024 * 1024) { toast({ title: "Image too large (max 5MB)", variant: "destructive" }); return; }
+
+                <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={async (e) => {
+                  const files = Array.from(e.target.files || []);
+                  if (files.length === 0) return;
+
                   setUploading(true);
-                  const ext = file.name.split(".").pop();
-                  const path = `${shopId}/${Date.now()}.${ext}`;
-                  const { error } = await supabase.storage.from("product-images").upload(path, file);
-                  if (error) { toast({ title: "Upload failed", variant: "destructive" }); setUploading(false); return; }
-                  const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
-                  setForm(prev => ({ ...prev, image_url: urlData.publicUrl }));
+                  const uploadedUrls: string[] = [];
+
+                  for (const file of files) {
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast({ title: `${file.name} skipped (max 5MB)", variant: "destructive" });
+                      continue;
+                    }
+
+                    const ext = file.name.split(".").pop();
+                    const path = `${shopId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+                    const { error } = await supabase.storage.from("product-images").upload(path, file);
+                    if (error) continue;
+
+                    const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+                    uploadedUrls.push(urlData.publicUrl);
+                  }
+
+                  if (uploadedUrls.length > 0) {
+                    setFormImages((prev) => [...prev, ...uploadedUrls]);
+                    toast({ title: `${uploadedUrls.length} image${uploadedUrls.length > 1 ? "s" : ""} uploaded!` });
+                  }
+
                   setUploading(false);
-                  toast({ title: "Image uploaded!" });
                 }} />
               </div>
 
