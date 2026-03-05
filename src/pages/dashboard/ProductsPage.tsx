@@ -50,6 +50,8 @@ const ProductsPage = () => {
     sizes: "", colors: "", brand: "", sku: "", weight: "", is_featured: false,
     video_url: "", is_adult: false,
   });
+  const [formImages, setFormImages] = useState<string[]>([]);
+  const [primaryImageIndex, setPrimaryImageIndex] = useState(0);
 
   useEffect(() => {
     if (!user) return;
