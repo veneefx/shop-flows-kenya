@@ -35,15 +35,24 @@ const InventoryPage = () => {
   }, [user]);
 
   const startScanner = useCallback(async () => {
-    setScanning(true);
     try {
+      await requestNativeCameraPermission();
+      setScanning(true);
+      await new Promise((resolve) => setTimeout(resolve, 120));
+
+      if (!document.getElementById("inventory-scanner")) {
+        throw new Error("Scanner UI not ready");
+      }
+
+      const cameraId = await getPreferredCameraId();
       const scanner = new Html5Qrcode("inventory-scanner");
       scannerRef.current = scanner;
+
       await scanner.start(
-        { facingMode: "environment" },
+        cameraId,
         { fps: 10, qrbox: { width: 250, height: 120 } },
         (decodedText) => {
-          const found = products.find(p => p.sku === decodedText);
+          const found = products.find((p) => p.sku === decodedText);
           if (found) {
             setSearch(decodedText);
             setAdjusting({ id: found.id, name: found.name, stock: found.stock, delta: "", reason: "" });
@@ -54,10 +63,11 @@ const InventoryPage = () => {
           }
           stopScanner();
         },
-        () => {}
+        () => {},
       );
-    } catch {
-      toast({ title: "Camera error", variant: "destructive" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not start camera scanner.";
+      toast({ title: "Camera error", description: message, variant: "destructive" });
       setScanning(false);
     }
   }, [products]);
