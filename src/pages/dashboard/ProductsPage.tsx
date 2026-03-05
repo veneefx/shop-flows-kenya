@@ -66,43 +66,52 @@ const ProductsPage = () => {
     init();
   }, [user]);
 
-  // Barcode scanner
   const startScanner = useCallback(async () => {
-    // Request camera permission using browser-native getUserMedia
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      stream.getTracks().forEach(t => t.stop()); // Release immediately, html5-qrcode will re-acquire
-    } catch (err) {
-      toast({ title: "Camera permission denied", description: "Please enable camera in your browser settings (Site Settings → Camera → Allow).", variant: "destructive" });
-      return;
-    }
+      await requestNativeCameraPermission();
+      setScanning(true);
 
-    setScanning(true);
-    try {
+      // Wait for scanner container to mount
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      if (!document.getElementById("barcode-scanner")) {
+        throw new Error("Scanner UI not ready");
+      }
+
+      const cameraId = await getPreferredCameraId();
       const scanner = new Html5Qrcode("barcode-scanner");
       scannerRef.current = scanner;
+
       await scanner.start(
-        { facingMode: "environment" },
+        cameraId,
         { fps: 10, qrbox: { width: 250, height: 120 } },
         (decodedText) => {
-          const found = products.find(p => p.sku === decodedText || p.name.toLowerCase().includes(decodedText.toLowerCase()));
+          const found = products.find(
+            (p) => p.sku === decodedText || p.name.toLowerCase().includes(decodedText.toLowerCase()),
+          );
+
           if (found) {
             setSearch(decodedText);
             toast({ title: `Found: ${found.name}`, description: `SKU: ${found.sku || "N/A"} — Stock: ${found.stock}` });
           } else {
-            setForm(prev => ({ ...prev, sku: decodedText }));
+            setForm((prev) => ({ ...prev, sku: decodedText }));
             setShowForm(true);
             toast({ title: "New barcode scanned", description: `SKU: ${decodedText} — Create a new product` });
           }
+
           stopScanner();
         },
-        () => {}
+        () => {},
       );
     } catch (err) {
-      toast({ title: "Camera error", description: "Could not start camera scanner.", variant: "destructive" });
+      const message = err instanceof Error ? err.message : "Could not start camera scanner.";
+      toast({
+        title: "Camera error",
+        description: `${message} If this is on mobile preview, open the app in a direct tab and allow camera access.`,
+        variant: "destructive",
+      });
       setScanning(false);
     }
-  }, [products]);
+  }, [products, stopScanner]);
 
   const stopScanner = useCallback(() => {
     if (scannerRef.current) {
