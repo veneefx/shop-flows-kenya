@@ -47,24 +47,34 @@ const HardwareSettingsPage = () => {
   }, []);
 
   const startCameraScanner = useCallback(async () => {
-    if (cameraPermission !== "granted") { await requestCamera(); return; }
+    if (cameraPermission !== "granted") {
+      await requestCamera();
+      return;
+    }
+
     setCameraActive(true);
     try {
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      const cameraId = await getPreferredCameraId();
       const scanner = new Html5Qrcode("hw-barcode-scanner");
       scannerRef.current = scanner;
+
       await scanner.start(
-        { facingMode: "environment" },
+        cameraId,
         { fps: 10, qrbox: { width: 250, height: 120 } },
         (text) => {
-          if (scannerSound) { const a = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"); a.play().catch(() => {}); }
+          if (scannerSound) {
+            const a = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU");
+            a.play().catch(() => {});
+          }
           toast({ title: "🔍 Barcode detected!", description: text });
           scanner.stop().catch(() => {});
           setCameraActive(false);
         },
-        () => {}
+        () => {},
       );
     } catch {
-      toast({ title: "Camera error", variant: "destructive" });
+      toast({ title: "Camera error", description: "Could not start camera scanner. Open in a direct browser tab and allow camera.", variant: "destructive" });
       setCameraActive(false);
     }
   }, [cameraPermission, scannerSound, requestCamera]);
