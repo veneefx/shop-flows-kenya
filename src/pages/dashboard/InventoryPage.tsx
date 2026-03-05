@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Html5Qrcode } from "html5-qrcode";
+import { getPreferredCameraId, requestNativeCameraPermission } from "@/lib/barcodeScanner";
+import { logActivity } from "@/lib/activity";
 
 const InventoryPage = () => {
   const { user } = useAuth();
@@ -33,15 +35,24 @@ const InventoryPage = () => {
   }, [user]);
 
   const startScanner = useCallback(async () => {
-    setScanning(true);
     try {
+      await requestNativeCameraPermission();
+      setScanning(true);
+      await new Promise((resolve) => setTimeout(resolve, 120));
+
+      if (!document.getElementById("inventory-scanner")) {
+        throw new Error("Scanner UI not ready");
+      }
+
+      const cameraId = await getPreferredCameraId();
       const scanner = new Html5Qrcode("inventory-scanner");
       scannerRef.current = scanner;
+
       await scanner.start(
-        { facingMode: "environment" },
+        cameraId,
         { fps: 10, qrbox: { width: 250, height: 120 } },
         (decodedText) => {
-          const found = products.find(p => p.sku === decodedText);
+          const found = products.find((p) => p.sku === decodedText);
           if (found) {
             setSearch(decodedText);
             setAdjusting({ id: found.id, name: found.name, stock: found.stock, delta: "", reason: "" });
@@ -52,10 +63,11 @@ const InventoryPage = () => {
           }
           stopScanner();
         },
-        () => {}
+        () => {},
       );
-    } catch {
-      toast({ title: "Camera error", variant: "destructive" });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not start camera scanner.";
+      toast({ title: "Camera error", description: message, variant: "destructive" });
       setScanning(false);
     }
   }, [products]);
@@ -80,6 +92,15 @@ const InventoryPage = () => {
     setSaving(false);
     if (!error) {
       setProducts(prev => prev.map(p => p.id === adjusting.id ? { ...p, stock: newStock } : p));
+      await logActivity({
+        shopId: shopId || "",
+        eventType: "inventory",
+        action: "stock_adjusted",
+        entityType: "product",
+        entityId: adjusting.id,
+        message: `Stock updated for ${adjusting.name}: ${adjusting.stock} → ${newStock}`,
+        metadata: { delta, reason: adjusting.reason || null },
+      });
       toast({ title: `Stock updated: ${adjusting.name}`, description: `${adjusting.stock} → ${newStock} (${delta > 0 ? "+" : ""}${delta})` });
       setAdjusting(null);
     } else {
