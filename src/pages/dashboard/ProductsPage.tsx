@@ -2,12 +2,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Package, Plus, Search, Edit2, Trash2, Eye, EyeOff,
-  Save, X, ChevronLeft, Loader2, Tag, Upload, Star, Camera, ScanLine
+  Save, X, ChevronLeft, Loader2, Tag, Upload, Star, Camera, ScanLine, Check
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Html5Qrcode } from "html5-qrcode";
+import { getPreferredCameraId, requestNativeCameraPermission } from "@/lib/barcodeScanner";
 
 interface Product {
   id: string;
