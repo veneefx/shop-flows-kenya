@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          event_type: string
+          id: string
+          message: string
+          metadata: Json
+          shop_id: string
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          event_type: string
+          id?: string
+          message: string
+          metadata?: Json
+          shop_id: string
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          event_type?: string
+          id?: string
+          message?: string
+          metadata?: Json
+          shop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_accounts: {
         Row: {
           balance: number
@@ -364,6 +411,17 @@ export type Database = {
           lipana_secret_key: string | null
           lipana_webhook_secret: string | null
           logo_url: string | null
+          receipt_intro_text: string | null
+          receipt_logo_url: string | null
+          receipt_paybill: string | null
+          receipt_paybill_account: string | null
+          receipt_qr_url: string | null
+          receipt_show_paybill: boolean | null
+          receipt_show_qr: boolean | null
+          receipt_show_till: boolean | null
+          receipt_slogan: string | null
+          receipt_thank_you: string | null
+          receipt_till: string | null
           shop_name: string
           slug: string
           theme_color: string | null
@@ -379,6 +437,17 @@ export type Database = {
           lipana_secret_key?: string | null
           lipana_webhook_secret?: string | null
           logo_url?: string | null
+          receipt_intro_text?: string | null
+          receipt_logo_url?: string | null
+          receipt_paybill?: string | null
+          receipt_paybill_account?: string | null
+          receipt_qr_url?: string | null
+          receipt_show_paybill?: boolean | null
+          receipt_show_qr?: boolean | null
+          receipt_show_till?: boolean | null
+          receipt_slogan?: string | null
+          receipt_thank_you?: string | null
+          receipt_till?: string | null
           shop_name: string
           slug: string
           theme_color?: string | null
@@ -394,6 +463,17 @@ export type Database = {
           lipana_secret_key?: string | null
           lipana_webhook_secret?: string | null
           logo_url?: string | null
+          receipt_intro_text?: string | null
+          receipt_logo_url?: string | null
+          receipt_paybill?: string | null
+          receipt_paybill_account?: string | null
+          receipt_qr_url?: string | null
+          receipt_show_paybill?: boolean | null
+          receipt_show_qr?: boolean | null
+          receipt_show_till?: boolean | null
+          receipt_slogan?: string | null
+          receipt_thank_you?: string | null
+          receipt_till?: string | null
           shop_name?: string
           slug?: string
           theme_color?: string | null
