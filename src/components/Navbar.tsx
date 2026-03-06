@@ -57,12 +57,11 @@ const Navbar = () => {
             <Link to="/" className="flex items-center gap-2.5 group">
               <img
                 src={logoImg}
-                alt="Vee Digital Solutions"
+                alt="Dukalangu"
                 className="w-10 h-10 object-contain drop-shadow-lg"
               />
               <div className="hidden sm:block">
-                <span className="font-display font-bold text-lg text-white leading-none">Vee Digital</span>
-                <p className="text-xs text-white/50 leading-none font-body">Solutions</p>
+                <span className="font-display font-bold text-lg text-white leading-none">Dukalangu</span>
               </div>
             </Link>
 
