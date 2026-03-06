@@ -253,7 +253,7 @@ const ReviewsSection = () => {
                     <textarea
                       value={form.content}
                       onChange={(e) => setForm({ ...form, content: e.target.value })}
-                      placeholder="Share your experience with Vee Digital Solutions..."
+                      placeholder="Share your experience with Dukalangu..."
                       rows={4}
                       maxLength={600}
                       className="w-full px-3 py-2.5 rounded-xl bg-background border border-input text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
