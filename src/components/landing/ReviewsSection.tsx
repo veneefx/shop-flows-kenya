@@ -101,10 +101,10 @@ const ReviewsSection = () => {
             </span>
             <h2 className="font-display font-black text-4xl lg:text-5xl text-foreground mb-3">
               Trusted by{" "}
-              <span className="text-primary">Kenyan Businesses</span>
+              <span className="text-primary">Businesses Worldwide</span>
             </h2>
             <p className="text-muted-foreground font-body text-base">
-              Bringing products directly to customers — hear what our merchants say.
+              Hear what our merchants say about Dukalangu.
             </p>
           </motion.div>
         </div>
