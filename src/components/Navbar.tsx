@@ -57,12 +57,11 @@ const Navbar = () => {
             <Link to="/" className="flex items-center gap-2.5 group">
               <img
                 src={logoImg}
-                alt="Vee Digital Solutions"
+                alt="Dukalangu"
                 className="w-10 h-10 object-contain drop-shadow-lg"
               />
               <div className="hidden sm:block">
-                <span className="font-display font-bold text-lg text-white leading-none">Vee Digital</span>
-                <p className="text-xs text-white/50 leading-none font-body">Solutions</p>
+                <span className="font-display font-bold text-lg text-white leading-none">Dukalangu</span>
               </div>
             </Link>
 
@@ -123,8 +122,8 @@ const Navbar = () => {
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
                 <div className="flex items-center gap-2">
-                  <img src={logoImg} alt="Vee" className="w-7 h-7 object-contain" />
-                  <span className="font-display font-bold text-sm text-white">Vee Digital</span>
+                  <img src={logoImg} alt="Dukalangu" className="w-7 h-7 object-contain" />
+                  <span className="font-display font-bold text-sm text-white">Dukalangu</span>
                 </div>
                 <button onClick={() => setMenuOpen(false)} className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-white/60 hover:text-white">
                   <X size={14} />
