@@ -146,7 +146,7 @@ const FeaturesSection = () => {
             <div className="absolute inset-0 flex items-center">
               <div className="p-8 max-w-xs">
                 <p className="text-white font-display font-black text-2xl mb-2">Happy Customers,<br />Happy Business</p>
-                <p className="text-white/70 text-sm font-body">Join thousands of merchants growing their revenue with Vee Digital Solutions.</p>
+                <p className="text-white/70 text-sm font-body">Join thousands of merchants growing their revenue with Duka Langu.</p>
               </div>
             </div>
           </motion.div>

@@ -675,7 +675,7 @@ const StoreFooter = ({ themeColor, shopName, description }: { themeColor: string
       </div>
     </div>
     <div className="border-t border-gray-100 pt-4 text-center">
-      <p className="text-xs text-gray-400">Built & Maintained by <a href="https://veedigitalsolutions.online" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline" style={{ color: themeColor }}>veedigitalsolutions.online</a></p>
+      <p className="text-xs text-gray-400">Powered by <a href="https://vdigitalsolution.online" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline" style={{ color: themeColor }}>Duka Langu</a></p>
     </div>
   </footer>
 );

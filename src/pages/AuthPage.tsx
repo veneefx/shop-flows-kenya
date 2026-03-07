@@ -316,8 +316,8 @@ const AuthPage = () => {
 
               <p className="text-center text-xs text-white/15 mt-6 font-body">
                 Built by{" "}
-                <a href="https://veedigitalsolutions.online" className="text-primary/50 hover:text-primary transition-colors">
-                  veedigitalsolutions.online
+                <a href="https://vdigitalsolution.online" className="text-primary/50 hover:text-primary transition-colors">
+                  Vlogic Digital Solution
                 </a>
               </p>
             </div>
