@@ -191,7 +191,7 @@ const AIInsightsPage = () => {
               <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
               <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 12 }}
                 formatter={(v: number, _: any, props: any) => [`KSh ${v.toLocaleString()}`, props.payload.type === "forecast" ? "Predicted" : "Actual"]} />
-              <Area type="monotone" dataKey="revenue" stroke="hsl(142 71% 45%)" strokeWidth={2.5} fill="url(#actualGrad)" strokeDasharray={(d: any) => ""} dot={false} />
+              <Area type="monotone" dataKey="revenue" stroke="hsl(142 71% 45%)" strokeWidth={2.5} fill="url(#actualGrad)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         ) : (
