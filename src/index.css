@@ -122,6 +122,15 @@
     font-family: 'Poppins', sans-serif;
   }
 
+  .font-body {
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Mobile tap highlight */
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   .gradient-brand {
     background: var(--gradient-brand);
   }

@@ -75,6 +75,9 @@ const PublicStorePage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [emailUpdates, setEmailUpdates] = useState(true);
   const [promoCode, setPromoCode] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<{ id: string; name: string; code: string; discountAmount: number } | null>(null);
+  const [promoError, setPromoError] = useState("");
   const [ageVerified, setAgeVerified] = useState<boolean>(() => {
     try { return localStorage.getItem("vee-age-verified") === "true"; } catch { return false; }
   });
@@ -139,8 +142,40 @@ const PublicStorePage = () => {
 
   const cartTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const shippingFee = shippingMethod === "within" ? 300 : shippingMethod === "partner" ? 500 : 0;
-  const grandTotal = cartTotal + shippingFee;
+  const promoDiscount = appliedPromo ? appliedPromo.discountAmount : 0;
+  const grandTotal = Math.max(0, cartTotal + shippingFee - promoDiscount);
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
+
+  const removePromo = () => {
+    setAppliedPromo(null);
+    setPromoCode("");
+    setPromoError("");
+  };
+
+  const applyPromoCode = async () => {
+    if (!promoCode.trim() || !shop) return;
+    setPromoError("");
+    setPromoLoading(true);
+    const { data, error } = await supabase
+      .from("promotions")
+      .select("*")
+      .eq("shop_id", shop.id)
+      .eq("coupon_code", promoCode.trim().toUpperCase())
+      .eq("is_active", true)
+      .maybeSingle();
+    setPromoLoading(false);
+    if (error || !data) { setPromoError("Invalid or expired promo code."); return; }
+    if (data.ends_at && new Date(data.ends_at) < new Date()) { setPromoError("This promo code has expired."); return; }
+    if (data.usage_limit && data.usage_count >= data.usage_limit) { setPromoError("This promo code has reached its usage limit."); return; }
+    let discountAmount = 0;
+    if (data.discount_type === "percentage") {
+      discountAmount = Math.round((cartTotal * data.discount_value) / 100);
+    } else {
+      discountAmount = Math.min(data.discount_value, cartTotal);
+    }
+    setAppliedPromo({ id: data.id, name: data.name, code: data.coupon_code, discountAmount });
+    toast({ title: `✅ Promo applied: ${data.name}`, description: `Saving KSh ${discountAmount.toLocaleString()}` });
+  };
 
   const placeOrder = async () => {
     if (!customerPhone) { toast({ title: "Phone number required", variant: "destructive" }); return; }
@@ -450,6 +485,8 @@ const PublicStorePage = () => {
           paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} mpesaPhone={mpesaPhone} setMpesaPhone={setMpesaPhone}
           transactionCode={transactionCode} setTransactionCode={setTransactionCode}
           emailUpdates={emailUpdates} setEmailUpdates={setEmailUpdates} promoCode={promoCode} setPromoCode={setPromoCode}
+          promoLoading={promoLoading} promoError={promoError} appliedPromo={appliedPromo} promoDiscount={promoDiscount}
+          applyPromoCode={applyPromoCode} removePromo={removePromo}
           submitting={submitting} placeOrder={placeOrder} removeFromCart={removeFromCart} updateCartQty={updateCartQty}
           cartTotal={cartTotal} shippingFee={shippingFee} grandTotal={grandTotal} cartCount={cartCount} themeColor={themeColor} />
 
@@ -613,6 +650,8 @@ const PublicStorePage = () => {
         paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod} mpesaPhone={mpesaPhone} setMpesaPhone={setMpesaPhone}
         transactionCode={transactionCode} setTransactionCode={setTransactionCode}
         emailUpdates={emailUpdates} setEmailUpdates={setEmailUpdates} promoCode={promoCode} setPromoCode={setPromoCode}
+        promoLoading={promoLoading} promoError={promoError} appliedPromo={appliedPromo} promoDiscount={promoDiscount}
+        applyPromoCode={applyPromoCode} removePromo={removePromo}
         submitting={submitting} placeOrder={placeOrder} removeFromCart={removeFromCart} updateCartQty={updateCartQty}
         cartTotal={cartTotal} shippingFee={shippingFee} grandTotal={grandTotal} cartCount={cartCount} themeColor={themeColor} />
 
@@ -708,6 +747,8 @@ interface CheckoutPanelProps {
   transactionCode: string; setTransactionCode: (v: string) => void;
   emailUpdates: boolean; setEmailUpdates: (v: boolean) => void;
   promoCode: string; setPromoCode: (v: string) => void;
+  promoLoading: boolean; promoError: string; appliedPromo: { id: string; name: string; code: string; discountAmount: number } | null;
+  promoDiscount: number; applyPromoCode: () => void; removePromo: () => void;
   submitting: boolean; placeOrder: () => void;
   removeFromCart: (id: string, size?: string, color?: string) => void;
   updateCartQty: (id: string, delta: number, size?: string, color?: string) => void;
@@ -720,6 +761,7 @@ const CheckoutPanel = ({ cart, cartOpen, setCartOpen, checkoutStep, setCheckoutS
   shippingMethod, setShippingMethod, paymentMethod, setPaymentMethod,
   mpesaPhone, setMpesaPhone, transactionCode, setTransactionCode,
   emailUpdates, setEmailUpdates, promoCode, setPromoCode,
+  promoLoading, promoError, appliedPromo, promoDiscount, applyPromoCode, removePromo,
   submitting, placeOrder, removeFromCart, updateCartQty,
   cartTotal, shippingFee, grandTotal, cartCount, themeColor }: CheckoutPanelProps) => (
   <AnimatePresence>
@@ -947,7 +989,12 @@ const CheckoutPanel = ({ cart, cartOpen, setCartOpen, checkoutStep, setCheckoutS
                     <div className="space-y-1.5 text-sm border-t border-gray-200 pt-3">
                       <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>KSh {cartTotal.toLocaleString()}</span></div>
                       <div className="flex justify-between text-gray-500"><span>Shipping</span><span>{shippingFee > 0 ? `KSh ${shippingFee.toLocaleString()}` : "Free"}</span></div>
-                      <div className="flex justify-between text-gray-500"><span>Tax</span><span>KSh 0.00</span></div>
+                      {promoDiscount > 0 && (
+                        <div className="flex justify-between text-green-600 font-semibold">
+                          <span>Promo ({appliedPromo?.code})</span>
+                          <span>- KSh {promoDiscount.toLocaleString()}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-bold text-base text-gray-900 pt-2 border-t border-gray-200">
                         <span>Total</span>
                         <span style={{ color: themeColor }}>KSh {grandTotal.toLocaleString()}</span>
@@ -957,12 +1004,30 @@ const CheckoutPanel = ({ cart, cartOpen, setCartOpen, checkoutStep, setCheckoutS
 
                   {/* PROMO CODE */}
                   <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Promo coupon</p>
-                    <div className="flex gap-2">
-                      <input value={promoCode} onChange={e => setPromoCode(e.target.value)} placeholder="Promo code"
-                        className="flex-1 px-3 py-2.5 rounded-lg bg-white border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300" />
-                      <button className="px-4 py-2.5 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-all">Apply</button>
-                    </div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Promo Coupon</p>
+                    {appliedPromo ? (
+                      <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2.5">
+                        <div>
+                          <p className="text-sm font-bold text-green-700">{appliedPromo.code} applied!</p>
+                          <p className="text-xs text-green-600">Saving KSh {appliedPromo.discountAmount.toLocaleString()}</p>
+                        </div>
+                        <button onClick={removePromo} className="text-xs text-red-500 hover:text-red-700 font-semibold">Remove</button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex gap-2">
+                          <input value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} placeholder="Enter promo code"
+                            onKeyDown={e => e.key === 'Enter' && applyPromoCode()}
+                            className="flex-1 px-3 py-2.5 rounded-lg bg-white border border-gray-200 text-sm font-mono font-bold focus:outline-none focus:ring-1 focus:ring-gray-300 uppercase" />
+                          <button onClick={applyPromoCode} disabled={promoLoading || !promoCode.trim()}
+                            className="px-4 py-2.5 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-all disabled:opacity-50 flex items-center gap-1">
+                            {promoLoading ? <Loader2 size={14} className="animate-spin" /> : null}
+                            Apply
+                          </button>
+                        </div>
+                        {promoError && <p className="text-xs text-red-500 mt-1.5">{promoError}</p>}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

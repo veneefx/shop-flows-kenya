@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { useInView } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, CheckCircle, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import { Send, CheckCircle, MessageSquare, ChevronDown, ChevronUp, Calendar } from "lucide-react";
 
 interface Review {
   id: string;
@@ -68,16 +68,24 @@ const ReviewsSection = () => {
     }
   };
 
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("en-KE", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   const starRating = (rating: number, interactive = false, onRate?: (r: number) => void) => (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((s) => (
         <button
           key={s}
-          type={interactive ? "button" : "button"}
+          type="button"
           onClick={interactive && onRate ? () => onRate(s) : undefined}
           className={`text-lg leading-none transition-colors ${
-            s <= rating ? "text-primary" : "text-foreground/20"
-          } ${interactive ? "hover:text-primary cursor-pointer" : "cursor-default"}`}
+            s <= rating ? "text-amber-400" : "text-foreground/20"
+          } ${interactive ? "hover:text-amber-400 cursor-pointer" : "cursor-default"}`}
           tabIndex={interactive ? 0 : -1}
         >
           ★
@@ -125,13 +133,24 @@ const ReviewsSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.5 }}
-                className="bg-card rounded-3xl p-7 border border-border hover:border-primary/30 hover:shadow-brand transition-all duration-300"
+                className="bg-card rounded-3xl p-7 border border-border hover:border-primary/30 hover:shadow-[0_8px_32px_-8px_hsl(142_71%_45%/0.2)] transition-all duration-300 flex flex-col"
               >
-                {starRating(r.rating)}
-                <p className="text-foreground/80 font-body text-sm leading-relaxed mt-4 mb-5">
-                  "{r.content}"
+                {/* Stars */}
+                <div className="flex items-center justify-between mb-3">
+                  {starRating(r.rating)}
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground font-body">
+                    <Calendar size={11} />
+                    {formatDate(r.created_at)}
+                  </span>
+                </div>
+
+                {/* Comment */}
+                <p className="text-foreground/80 font-body text-sm leading-relaxed mb-5 flex-1">
+                  &ldquo;{r.content}&rdquo;
                 </p>
-                <div className="mt-auto pt-4 border-t border-border">
+
+                {/* Reviewer info */}
+                <div className="pt-4 border-t border-border">
                   <p className="font-display font-semibold text-sm text-foreground">{r.name}</p>
                   {r.business && (
                     <p className="text-xs text-muted-foreground font-body mt-0.5">{r.business}</p>
