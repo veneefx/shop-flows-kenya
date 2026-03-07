@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Phone, MessageCircle, ChevronDown, ChevronUp, Check } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
-const legalText = `By using Dukalangu, you agree to our Terms & Conditions, Privacy Policy, and Cookie Policy, all governed by the laws of the Republic of Kenya. We comply with the Kenya Data Protection Act (2019) and the Consumer Protection Act (2012). Subscription fees are non-refundable except as required by law. M-Pesa transactions are processed via Lipana/Safaricom and governed by their respective policies. We maintain a 99.9% uptime SLA. For disputes, contact us first; unresolved matters go to Kenyan courts in Nairobi. Your data is encrypted, never sold, and deletable upon request. © ${new Date().getFullYear()} Dukalangu — Built & Maintained by veedigitalsolutions.online`;
+const legalText = `By using Duka Langu, you agree to our Terms & Conditions, Privacy Policy, and Cookie Policy, all governed by the laws of the Republic of Kenya. We comply with the Kenya Data Protection Act (2019) and the Consumer Protection Act (2012). Subscription fees are non-refundable except as required by law. M-Pesa transactions are processed via Lipana/Safaricom and governed by their respective policies. We maintain a 99.9% uptime SLA. For disputes, contact us first; unresolved matters go to Kenyan courts in Nairobi. Your data is encrypted, never sold, and deletable upon request. © ${new Date().getFullYear()} Duka Langu — Built & Maintained by Vlogic Digital Solution • www.vdigitalsolution.online`;
 
 const Footer = () => {
   const [legalOpen, setLegalOpen] = useState(false);
