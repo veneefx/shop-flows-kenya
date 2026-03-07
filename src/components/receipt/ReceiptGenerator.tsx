@@ -155,7 +155,7 @@ const ReceiptGenerator = ({ data, onClose }: ReceiptGeneratorProps) => {
       (data.shopTill ? `Till: ${data.shopTill}\n` : "") +
       `\nThank you for shopping with us! 🙏\n` +
       (data.shopSlogan ? `"${data.shopSlogan}"\n` : "") +
-      `Powered by Vee Digital Solutions`
+      `Powered by Vlogic Digital Solution\nwww.vdigitalsolution.online\n© ${new Date().getFullYear()} Duka Langu`
     );
     const phone = data.customerPhone.startsWith("0") ? "254" + data.customerPhone.slice(1) : data.customerPhone;
     window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
