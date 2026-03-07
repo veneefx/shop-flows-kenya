@@ -230,8 +230,8 @@ const ReceiptGenerator = ({ data, onClose }: ReceiptGeneratorProps) => {
           <div className="text-center pt-2 border-t border-dashed border-border space-y-1">
             <p className="text-xs font-display font-bold text-foreground">Thank you for shopping with us! 🙏</p>
             {data.shopSlogan && <p className="text-[10px] text-muted-foreground italic">"{data.shopSlogan}"</p>}
-            <p className="text-[9px] text-muted-foreground">Powered by Vee Digital Solutions • www.veedigital.co.ke</p>
-            <p className="text-[9px] text-muted-foreground">© {new Date().getFullYear()} {data.shopName}. All rights reserved.</p>
+            <p className="text-[9px] text-muted-foreground">Powered by Vlogic Digital Solution • www.vdigitalsolution.online</p>
+            <p className="text-[9px] text-muted-foreground">© {new Date().getFullYear()} Duka Langu. All rights reserved.</p>
           </div>
         </div>
 
