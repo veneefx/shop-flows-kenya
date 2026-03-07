@@ -125,11 +125,11 @@ const AuthPage = () => {
         >
           <Link to="/" className="inline-flex items-center gap-2.5 pointer-events-auto">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-brand">
-              <img src={logoImg} alt="Vee Digital" className="w-6 h-6 object-contain" />
+              <img src={logoImg} alt="Duka Langu" className="w-6 h-6 object-contain" />
             </div>
             <div>
-              <span className="font-display font-bold text-lg text-white block leading-none">Vee Digital</span>
-              <span className="text-white/40 text-xs font-body">Solutions</span>
+              <span className="font-display font-bold text-lg text-white block leading-none">Duka Langu</span>
+              <span className="text-white/40 text-xs font-body">POS & E-Commerce</span>
             </div>
           </Link>
           <h1 className="font-display font-black text-4xl lg:text-5xl text-white leading-tight">
