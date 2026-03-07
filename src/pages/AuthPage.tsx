@@ -159,9 +159,9 @@ const AuthPage = () => {
               <div className="flex items-center justify-between mb-8">
                 <Link to="/" className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                    <img src={logoImg} alt="Vee" className="w-5 h-5 object-contain" />
+                    <img src={logoImg} alt="Duka Langu" className="w-5 h-5 object-contain" />
                   </div>
-                  <span className="font-display font-semibold text-white text-sm">Vee Digital</span>
+                  <span className="font-display font-semibold text-white text-sm">Duka Langu</span>
                 </Link>
                 <Link
                   to="/"
