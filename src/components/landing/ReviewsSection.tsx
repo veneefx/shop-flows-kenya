@@ -11,6 +11,7 @@ interface Review {
   content: string;
   rating: number;
   created_at: string;
+  is_approved?: boolean;
 }
 
 const ReviewsSection = () => {
@@ -26,16 +27,47 @@ const ReviewsSection = () => {
 
   useEffect(() => {
     fetchReviews();
+    
+    // Subscribe to real-time updates for approved reviews
+    const channel = supabase
+      .channel("reviews-realtime")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "reviews", filter: "is_approved=eq.true" },
+        (payload) => {
+          const updatedReview = payload.new;
+          setReviews(prev => {
+            const exists = prev.some(r => r.id === updatedReview.id);
+            if (exists) {
+              return prev.map(r => r.id === updatedReview.id ? updatedReview : r);
+            } else {
+              return [updatedReview, ...prev].slice(0, 6);
+            }
+          });
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchReviews = async () => {
-    const { data } = await supabase
-      .from("reviews")
-      .select("*")
-      .eq("is_approved", true)
-      .order("created_at", { ascending: false })
-      .limit(6);
-    if (data) setReviews(data);
+    try {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*")
+        .eq("is_approved", true)
+        .order("created_at", { ascending: false })
+        .limit(6);
+      if (error) {
+        console.error("Error fetching reviews:", error);
+      }
+      if (data) setReviews(data);
+    } catch (err) {
+      console.error("Unexpected error fetching reviews:", err);
+    }
     setLoading(false);
   };
 
@@ -52,19 +84,33 @@ const ReviewsSection = () => {
     setError("");
     setSubmitting(true);
 
-    const { error: err } = await supabase.from("reviews").insert({
-      name: form.name.trim(),
-      business: form.business.trim() || null,
-      content: form.content.trim(),
-      rating: form.rating,
-    });
+    try {
+      const { error: err, data } = await supabase.from("reviews").insert({
+        name: form.name.trim(),
+        business: form.business.trim() || null,
+        content: form.content.trim(),
+        rating: form.rating,
+        is_approved: false,
+      }).select();
 
-    setSubmitting(false);
-    if (err) {
-      setError("Failed to submit. Please try again.");
-    } else {
-      setSubmitted(true);
-      setForm({ name: "", business: "", content: "", rating: 5 });
+      setSubmitting(false);
+      if (err) {
+        console.error("Review submission error:", err);
+        setError("Failed to submit. Please try again.");
+      } else if (data && data.length > 0) {
+        setSubmitted(true);
+        setForm({ name: "", business: "", content: "", rating: 5 });
+        // Optionally refresh reviews after a delay to show it in the pending state
+        setTimeout(() => {
+          fetchReviews();
+        }, 1000);
+      } else {
+        setError("Failed to submit. Please try again.");
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      setSubmitting(false);
+      setError("An unexpected error occurred. Please try again.");
     }
   };
 

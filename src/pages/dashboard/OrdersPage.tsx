@@ -39,6 +39,24 @@ const OrdersPage = () => {
         setShopId(shop.id);
         const { data } = await supabase.from("orders").select("*").eq("shop_id", shop.id).order("created_at", { ascending: false });
         setOrders(data || []);
+        
+        // Subscribe to real-time updates for this shop's orders
+        const channel = supabase
+          .channel(`orders-${shop.id}`)
+          .on(
+            "postgres_changes",
+            { event: "UPDATE", schema: "public", table: "orders", filter: `shop_id=eq.${shop.id}` },
+            (payload) => {
+              const updatedOrder = payload.new;
+              setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
+              setSelectedOrder(prev => prev?.id === updatedOrder.id ? updatedOrder : prev);
+            }
+          )
+          .subscribe();
+        
+        return () => {
+          supabase.removeChannel(channel);
+        };
       }
       setLoading(false);
     };
@@ -46,9 +64,12 @@ const OrdersPage = () => {
   }, [user]);
 
   const updateStatus = async (id: string, status: string) => {
-    await supabase.from("orders").update({ status }).eq("id", id);
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
-    if (selectedOrder?.id === id) setSelectedOrder(prev => prev ? { ...prev, status } : null);
+    const { error } = await supabase.from("orders").update({ status }).eq("id", id);
+    if (!error) {
+      // Real-time subscription will handle the update, but also update locally for immediate feedback
+      setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
+      setSelectedOrder(prev => prev?.id === id ? { ...prev, status } : prev);
+    }
   };
 
   const filtered = orders.filter(o => {
