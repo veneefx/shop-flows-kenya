@@ -67,6 +67,7 @@ const navSections = [
     label: "Insights",
     items: [
       { icon: BarChart3, label: "Analytics", path: "/dashboard/analytics", key: "analytics" },
+      { icon: Zap, label: "AI Insights", path: "/dashboard/ai-insights", key: "aiinsights" },
       { icon: FileText, label: "Reports", path: "/dashboard/reports", key: "reports" },
       { icon: Megaphone, label: "Promotions", path: "/dashboard/promotions", key: "promotions" },
       { icon: Truck, label: "Delivery", path: "/dashboard/delivery", key: "delivery" },
