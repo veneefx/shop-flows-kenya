@@ -142,7 +142,7 @@ const DashboardSidebar = () => {
         {/* Logo */}
         <div className={`flex items-center gap-3 px-3 h-16 border-b border-sidebar-border flex-shrink-0 ${collapsed ? "justify-center" : ""}`}>
           <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-brand">
-            <img src={logoImg} alt="Vee" className="w-5 h-5 object-contain" />
+            <img src={logoImg} alt="Duka Langu" className="w-5 h-5 object-contain" />
           </div>
           <AnimatePresence>
             {!collapsed && (
