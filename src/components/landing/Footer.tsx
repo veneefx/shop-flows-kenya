@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Phone, MessageCircle, ChevronDown, ChevronUp, Check } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
-const legalText = `By using Dukalangu, you agree to our Terms & Conditions, Privacy Policy, and Cookie Policy, all governed by the laws of the Republic of Kenya. We comply with the Kenya Data Protection Act (2019) and the Consumer Protection Act (2012). Subscription fees are non-refundable except as required by law. M-Pesa transactions are processed via Lipana/Safaricom and governed by their respective policies. We maintain a 99.9% uptime SLA. For disputes, contact us first; unresolved matters go to Kenyan courts in Nairobi. Your data is encrypted, never sold, and deletable upon request. © ${new Date().getFullYear()} Dukalangu — Built & Maintained by veedigitalsolutions.online`;
+const legalText = `By using Duka Langu, you agree to our Terms & Conditions, Privacy Policy, and Cookie Policy, all governed by the laws of the Republic of Kenya. We comply with the Kenya Data Protection Act (2019) and the Consumer Protection Act (2012). Subscription fees are non-refundable except as required by law. M-Pesa transactions are processed via Lipana/Safaricom and governed by their respective policies. We maintain a 99.9% uptime SLA. For disputes, contact us first; unresolved matters go to Kenyan courts in Nairobi. Your data is encrypted, never sold, and deletable upon request. © ${new Date().getFullYear()} Duka Langu — Built & Maintained by Vlogic Digital Solution • www.vdigitalsolution.online`;
 
 const Footer = () => {
   const [legalOpen, setLegalOpen] = useState(false);
@@ -92,10 +92,11 @@ const Footer = () => {
         </div>
 
         <div className="mt-10 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/30 text-xs font-body text-center">© {new Date().getFullYear()} Dukalangu. All rights reserved.</p>
+          <p className="text-white/30 text-xs font-body text-center">© {new Date().getFullYear()} Duka Langu. All rights reserved.</p>
           <p className="text-white/40 text-xs font-body text-center">
             Built, Developed & Maintained by{" "}
-            <a href="https://veedigitalsolutions.online" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-brand-light transition-colors font-semibold">veedigitalsolutions.online</a>
+            <a href="https://vdigitalsolution.online" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-brand-light transition-colors font-semibold">Vlogic Digital Solution</a>
+            {" • "}<a href="https://vdigitalsolution.online" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-primary transition-colors">www.vdigitalsolution.online</a>
           </p>
         </div>
       </div>

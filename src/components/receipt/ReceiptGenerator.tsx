@@ -131,9 +131,9 @@ const ReceiptGenerator = ({ data, onClose }: ReceiptGeneratorProps) => {
       <div class="center footer">
         <div class="thanks">Thank you for shopping with us! 🙏</div>
         ${data.shopSlogan ? `<div>"${data.shopSlogan}"</div>` : ""}
-        <div>Powered by Vee Digital Solutions</div>
-        <div>www.veedigital.co.ke</div>
-        <div style="margin-top:4px">© ${new Date().getFullYear()} ${data.shopName}. All rights reserved.</div>
+        <div>Powered by Vlogic Digital Solution</div>
+        <div>www.vdigitalsolution.online</div>
+        <div style="margin-top:4px">© ${new Date().getFullYear()} Duka Langu. All rights reserved.</div>
       </div>
     </body></html>`);
     printWindow.document.close();
@@ -155,7 +155,7 @@ const ReceiptGenerator = ({ data, onClose }: ReceiptGeneratorProps) => {
       (data.shopTill ? `Till: ${data.shopTill}\n` : "") +
       `\nThank you for shopping with us! 🙏\n` +
       (data.shopSlogan ? `"${data.shopSlogan}"\n` : "") +
-      `Powered by Vee Digital Solutions`
+      `Powered by Vlogic Digital Solution\nwww.vdigitalsolution.online\n© ${new Date().getFullYear()} Duka Langu`
     );
     const phone = data.customerPhone.startsWith("0") ? "254" + data.customerPhone.slice(1) : data.customerPhone;
     window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
@@ -230,8 +230,8 @@ const ReceiptGenerator = ({ data, onClose }: ReceiptGeneratorProps) => {
           <div className="text-center pt-2 border-t border-dashed border-border space-y-1">
             <p className="text-xs font-display font-bold text-foreground">Thank you for shopping with us! 🙏</p>
             {data.shopSlogan && <p className="text-[10px] text-muted-foreground italic">"{data.shopSlogan}"</p>}
-            <p className="text-[9px] text-muted-foreground">Powered by Vee Digital Solutions • www.veedigital.co.ke</p>
-            <p className="text-[9px] text-muted-foreground">© {new Date().getFullYear()} {data.shopName}. All rights reserved.</p>
+            <p className="text-[9px] text-muted-foreground">Powered by Vlogic Digital Solution • www.vdigitalsolution.online</p>
+            <p className="text-[9px] text-muted-foreground">© {new Date().getFullYear()} Duka Langu. All rights reserved.</p>
           </div>
         </div>
 

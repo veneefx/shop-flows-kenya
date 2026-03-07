@@ -29,6 +29,7 @@ import PromotionsPage from "./pages/dashboard/PromotionsPage";
 import DeliveryPage from "./pages/dashboard/DeliveryPage";
 import ActivityLogsPage from "./pages/dashboard/ActivityLogsPage";
 import HardwareSettingsPage from "./pages/dashboard/HardwareSettingsPage";
+import AIInsightsPage from "./pages/dashboard/AIInsightsPage";
 import PublicStorePage from "./pages/PublicStorePage";
 import AIAssistant from "./components/AIAssistant";
 
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="payments" element={<PaymentsSettings />} />
                 <Route path="activity-logs" element={<ActivityLogsPage />} />
                 <Route path="hardware" element={<HardwareSettingsPage />} />
+                <Route path="ai-insights" element={<AIInsightsPage />} />
                 <Route path="store" element={<MyStorePage />} />
                 <Route path="upgrade" element={<UpgradePage />} />
                 <Route path="settings" element={<SettingsPage />} />

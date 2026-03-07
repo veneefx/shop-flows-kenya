@@ -72,7 +72,7 @@ const FeaturesSection = () => {
               <span className="text-primary">Business Owners</span>
             </h2>
             <p className="text-lg text-muted-foreground font-body">
-              From your first sale to your thousandth order — Vee Digital handles the tech so you can focus on growing.
+              From your first sale to your thousandth order — Duka Langu handles the tech so you can focus on growing.
             </p>
           </motion.div>
         </div>
@@ -89,7 +89,7 @@ const FeaturesSection = () => {
           >
             <img
               src={featureMerchant}
-              alt="Kenyan merchant using Vee Digital"
+              alt="Merchant using Duka Langu"
               className="w-full h-72 lg:h-96 object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
@@ -146,7 +146,7 @@ const FeaturesSection = () => {
             <div className="absolute inset-0 flex items-center">
               <div className="p-8 max-w-xs">
                 <p className="text-white font-display font-black text-2xl mb-2">Happy Customers,<br />Happy Business</p>
-                <p className="text-white/70 text-sm font-body">Join thousands of merchants growing their revenue with Vee Digital Solutions.</p>
+                <p className="text-white/70 text-sm font-body">Join thousands of merchants growing their revenue with Duka Langu.</p>
               </div>
             </div>
           </motion.div>

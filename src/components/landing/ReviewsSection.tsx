@@ -104,7 +104,7 @@ const ReviewsSection = () => {
               <span className="text-primary">Businesses Worldwide</span>
             </h2>
             <p className="text-muted-foreground font-body text-base">
-              Hear what our merchants say about Dukalangu.
+              Hear what our merchants say about Duka Langu.
             </p>
           </motion.div>
         </div>
@@ -253,7 +253,7 @@ const ReviewsSection = () => {
                     <textarea
                       value={form.content}
                       onChange={(e) => setForm({ ...form, content: e.target.value })}
-                      placeholder="Share your experience with Dukalangu..."
+                      placeholder="Share your experience with Duka Langu..."
                       rows={4}
                       maxLength={600}
                       className="w-full px-3 py-2.5 rounded-xl bg-background border border-input text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"

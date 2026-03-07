@@ -5,7 +5,7 @@ import {
   BarChart3, CreditCard, Settings, LogOut, Store,
   Sun, Moon, Crown, Shield, Lock, ShoppingCart,
   Boxes, Wallet, UserCog, FileText, Megaphone,
-  Truck, DollarSign, Activity, ChevronLeft, ChevronRight, Plug
+  Truck, DollarSign, Activity, ChevronLeft, ChevronRight, Plug, Zap
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,6 +67,7 @@ const navSections = [
     label: "Insights",
     items: [
       { icon: BarChart3, label: "Analytics", path: "/dashboard/analytics", key: "analytics" },
+      { icon: Zap, label: "AI Insights", path: "/dashboard/ai-insights", key: "aiinsights" },
       { icon: FileText, label: "Reports", path: "/dashboard/reports", key: "reports" },
       { icon: Megaphone, label: "Promotions", path: "/dashboard/promotions", key: "promotions" },
       { icon: Truck, label: "Delivery", path: "/dashboard/delivery", key: "delivery" },
@@ -142,13 +143,13 @@ const DashboardSidebar = () => {
         {/* Logo */}
         <div className={`flex items-center gap-3 px-3 h-16 border-b border-sidebar-border flex-shrink-0 ${collapsed ? "justify-center" : ""}`}>
           <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-brand">
-            <img src={logoImg} alt="Vee" className="w-5 h-5 object-contain" />
+            <img src={logoImg} alt="Duka Langu" className="w-5 h-5 object-contain" />
           </div>
           <AnimatePresence>
             {!collapsed && (
               <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }} className="overflow-hidden">
-                <p className="font-display font-bold text-sm text-white leading-none whitespace-nowrap">Vee Digital</p>
-                <p className="text-[10px] text-sidebar-foreground/40 font-body whitespace-nowrap">Solutions</p>
+                <p className="font-display font-bold text-sm text-white leading-none whitespace-nowrap">Duka Langu</p>
+                <p className="text-[10px] text-sidebar-foreground/40 font-body whitespace-nowrap">POS & E-Commerce</p>
               </motion.div>
             )}
           </AnimatePresence>

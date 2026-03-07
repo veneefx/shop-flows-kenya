@@ -39,7 +39,7 @@ interface Product {
   is_adult: boolean | null;
 }
 
-const CART_STORAGE_KEY = "vee-cart";
+const CART_STORAGE_KEY = "duka-cart";
 
 const PublicStorePage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -259,7 +259,7 @@ const PublicStorePage = () => {
               className="fixed left-0 top-0 h-full w-72 z-50 bg-white shadow-2xl flex flex-col">
               <div className="flex items-center justify-between p-4 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <img src={logoImg} alt="Vee" className="w-6 h-6" />
+                  <img src={logoImg} alt="Duka Langu" className="w-6 h-6" />
                   <span className="font-bold text-sm">{shop?.shop_name}</span>
                 </div>
                 <button onClick={() => setMobileMenuOpen(false)}><X size={18} /></button>
@@ -286,7 +286,7 @@ const PublicStorePage = () => {
                 <button className="w-full text-left py-2.5 px-3 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Shipping & Returns</button>
               </nav>
               <div className="p-4 border-t border-gray-100">
-                <p className="text-xs text-gray-400 text-center">Powered by <span className="font-semibold" style={{ color: themeColor }}>Vee Digital Solutions</span></p>
+                <p className="text-xs text-gray-400 text-center">Powered by <span className="font-semibold" style={{ color: themeColor }}>Duka Langu</span></p>
               </div>
             </motion.div>
           </>
@@ -675,7 +675,7 @@ const StoreFooter = ({ themeColor, shopName, description }: { themeColor: string
       </div>
     </div>
     <div className="border-t border-gray-100 pt-4 text-center">
-      <p className="text-xs text-gray-400">Built & Maintained by <a href="https://veedigitalsolutions.online" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline" style={{ color: themeColor }}>veedigitalsolutions.online</a></p>
+      <p className="text-xs text-gray-400">Powered by <a href="https://vdigitalsolution.online" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline" style={{ color: themeColor }}>Duka Langu</a></p>
     </div>
   </footer>
 );
