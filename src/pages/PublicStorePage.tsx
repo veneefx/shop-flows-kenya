@@ -39,7 +39,7 @@ interface Product {
   is_adult: boolean | null;
 }
 
-const CART_STORAGE_KEY = "vee-cart";
+const CART_STORAGE_KEY = "duka-cart";
 
 const PublicStorePage = () => {
   const { slug } = useParams<{ slug: string }>();
