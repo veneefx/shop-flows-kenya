@@ -259,7 +259,7 @@ const PublicStorePage = () => {
               className="fixed left-0 top-0 h-full w-72 z-50 bg-white shadow-2xl flex flex-col">
               <div className="flex items-center justify-between p-4 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <img src={logoImg} alt="Vee" className="w-6 h-6" />
+                  <img src={logoImg} alt="Duka Langu" className="w-6 h-6" />
                   <span className="font-bold text-sm">{shop?.shop_name}</span>
                 </div>
                 <button onClick={() => setMobileMenuOpen(false)}><X size={18} /></button>

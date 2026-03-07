@@ -64,6 +64,7 @@ const App = () => (
                 <Route path="payments" element={<PaymentsSettings />} />
                 <Route path="activity-logs" element={<ActivityLogsPage />} />
                 <Route path="hardware" element={<HardwareSettingsPage />} />
+                <Route path="ai-insights" element={<AIInsightsPage />} />
                 <Route path="store" element={<MyStorePage />} />
                 <Route path="upgrade" element={<UpgradePage />} />
                 <Route path="settings" element={<SettingsPage />} />
