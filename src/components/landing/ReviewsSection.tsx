@@ -104,7 +104,7 @@ const ReviewsSection = () => {
               <span className="text-primary">Businesses Worldwide</span>
             </h2>
             <p className="text-muted-foreground font-body text-base">
-              Hear what our merchants say about Dukalangu.
+              Hear what our merchants say about Duka Langu.
             </p>
           </motion.div>
         </div>

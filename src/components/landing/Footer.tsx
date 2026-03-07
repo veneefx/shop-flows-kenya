@@ -92,10 +92,11 @@ const Footer = () => {
         </div>
 
         <div className="mt-10 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/30 text-xs font-body text-center">© {new Date().getFullYear()} Dukalangu. All rights reserved.</p>
+          <p className="text-white/30 text-xs font-body text-center">© {new Date().getFullYear()} Duka Langu. All rights reserved.</p>
           <p className="text-white/40 text-xs font-body text-center">
             Built, Developed & Maintained by{" "}
-            <a href="https://veedigitalsolutions.online" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-brand-light transition-colors font-semibold">veedigitalsolutions.online</a>
+            <a href="https://vdigitalsolution.online" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-brand-light transition-colors font-semibold">Vlogic Digital Solution</a>
+            {" • "}<a href="https://vdigitalsolution.online" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-primary transition-colors">www.vdigitalsolution.online</a>
           </p>
         </div>
       </div>

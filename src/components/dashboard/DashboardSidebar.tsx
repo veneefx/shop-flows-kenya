@@ -147,8 +147,8 @@ const DashboardSidebar = () => {
           <AnimatePresence>
             {!collapsed && (
               <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }} className="overflow-hidden">
-                <p className="font-display font-bold text-sm text-white leading-none whitespace-nowrap">Vee Digital</p>
-                <p className="text-[10px] text-sidebar-foreground/40 font-body whitespace-nowrap">Solutions</p>
+                <p className="font-display font-bold text-sm text-white leading-none whitespace-nowrap">Duka Langu</p>
+                <p className="text-[10px] text-sidebar-foreground/40 font-body whitespace-nowrap">POS & E-Commerce</p>
               </motion.div>
             )}
           </AnimatePresence>

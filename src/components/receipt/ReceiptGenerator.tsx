@@ -131,9 +131,9 @@ const ReceiptGenerator = ({ data, onClose }: ReceiptGeneratorProps) => {
       <div class="center footer">
         <div class="thanks">Thank you for shopping with us! 🙏</div>
         ${data.shopSlogan ? `<div>"${data.shopSlogan}"</div>` : ""}
-        <div>Powered by Vee Digital Solutions</div>
-        <div>www.veedigital.co.ke</div>
-        <div style="margin-top:4px">© ${new Date().getFullYear()} ${data.shopName}. All rights reserved.</div>
+        <div>Powered by Vlogic Digital Solution</div>
+        <div>www.vdigitalsolution.online</div>
+        <div style="margin-top:4px">© ${new Date().getFullYear()} Duka Langu. All rights reserved.</div>
       </div>
     </body></html>`);
     printWindow.document.close();
