@@ -72,7 +72,7 @@ const FeaturesSection = () => {
               <span className="text-primary">Business Owners</span>
             </h2>
             <p className="text-lg text-muted-foreground font-body">
-              From your first sale to your thousandth order — Vee Digital handles the tech so you can focus on growing.
+              From your first sale to your thousandth order — Duka Langu handles the tech so you can focus on growing.
             </p>
           </motion.div>
         </div>
