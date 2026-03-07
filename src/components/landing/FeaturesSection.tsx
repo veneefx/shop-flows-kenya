@@ -89,7 +89,7 @@ const FeaturesSection = () => {
           >
             <img
               src={featureMerchant}
-              alt="Kenyan merchant using Vee Digital"
+              alt="Merchant using Duka Langu"
               className="w-full h-72 lg:h-96 object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
