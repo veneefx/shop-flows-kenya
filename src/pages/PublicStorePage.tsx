@@ -286,7 +286,7 @@ const PublicStorePage = () => {
                 <button className="w-full text-left py-2.5 px-3 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Shipping & Returns</button>
               </nav>
               <div className="p-4 border-t border-gray-100">
-                <p className="text-xs text-gray-400 text-center">Powered by <span className="font-semibold" style={{ color: themeColor }}>Vee Digital Solutions</span></p>
+                <p className="text-xs text-gray-400 text-center">Powered by <span className="font-semibold" style={{ color: themeColor }}>Duka Langu</span></p>
               </div>
             </motion.div>
           </>
