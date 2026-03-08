@@ -47,7 +47,7 @@ const OrdersPage = () => {
             "postgres_changes",
             { event: "UPDATE", schema: "public", table: "orders", filter: `shop_id=eq.${shop.id}` },
             (payload) => {
-              const updatedOrder = payload.new;
+              const updatedOrder = payload.new as Order;
               setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
               setSelectedOrder(prev => prev?.id === updatedOrder.id ? updatedOrder : prev);
             }

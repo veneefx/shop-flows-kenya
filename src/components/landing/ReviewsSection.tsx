@@ -35,7 +35,7 @@ const ReviewsSection = () => {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "reviews", filter: "is_approved=eq.true" },
         (payload) => {
-          const updatedReview = payload.new;
+          const updatedReview = payload.new as Review;
           setReviews(prev => {
             const exists = prev.some(r => r.id === updatedReview.id);
             if (exists) {

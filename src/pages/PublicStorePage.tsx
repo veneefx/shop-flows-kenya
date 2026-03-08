@@ -166,7 +166,7 @@ const PublicStorePage = () => {
     setPromoLoading(false);
     if (error || !data) { setPromoError("Invalid or expired promo code."); return; }
     if (data.ends_at && new Date(data.ends_at) < new Date()) { setPromoError("This promo code has expired."); return; }
-    if (data.usage_limit && data.usage_count >= data.usage_limit) { setPromoError("This promo code has reached its usage limit."); return; }
+    if (data.max_uses && data.used_count >= data.max_uses) { setPromoError("This promo code has reached its usage limit."); return; }
     let discountAmount = 0;
     if (data.discount_type === "percentage") {
       discountAmount = Math.round((cartTotal * data.discount_value) / 100);

@@ -193,7 +193,7 @@ const SalesPage = () => {
       setPromoError("This promo code has expired.");
       return;
     }
-    if (data.usage_limit && data.usage_count >= data.usage_limit) {
+    if (data.max_uses && data.used_count >= data.max_uses) {
       setPromoError("This promo code has reached its usage limit.");
       return;
     }

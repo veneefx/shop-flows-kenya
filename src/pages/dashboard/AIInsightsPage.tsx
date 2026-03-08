@@ -252,7 +252,7 @@ const AIInsightsPage = () => {
                   props.payload.type === "forecast" ? "Predicted" : "Actual"
                 ]}
               />
-              <Area type="monotone" dataKey="revenue" stroke="hsl(142 71% 45%)" strokeWidth={2.5} fill="url(#actualGrad)" dot={false} strokeDasharray={(d: any) => d?.type === "forecast" ? "5 3" : "0"} />
+              <Area type="monotone" dataKey="revenue" stroke="hsl(142 71% 45%)" strokeWidth={2.5} fill="url(#actualGrad)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         ) : (
