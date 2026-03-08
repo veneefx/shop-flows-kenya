@@ -150,7 +150,7 @@ const SettingsPage = () => {
       privacy_policy: legalForm.privacy_policy || null,
       terms_of_service: legalForm.terms_of_service || null,
       refund_policy: legalForm.refund_policy || null,
-    }).eq("id", shop.id);
+    } as any).eq("id", shop.id);
     setSaving(null);
     toast({ title: "Legal pages saved!" });
   };
