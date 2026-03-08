@@ -118,10 +118,7 @@ const SettingsPage = () => {
       slug: storeForm.slug.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
       theme_color: storeForm.theme_color,
       logo_url: storeForm.logo_url || null,
-      whatsapp_number: storeForm.whatsapp_number || null,
-      address: storeForm.address || null,
-      city: storeForm.city || null,
-    }).eq("id", shop.id);
+    } as any).eq("id", shop.id);
     setSaving(null);
     toast({ title: "Store settings saved!" });
   };
