@@ -207,7 +207,7 @@ const SalesPage = () => {
       id: data.id,
       name: data.name,
       code: data.coupon_code,
-      discountType: data.discount_type,
+      discountType: data.discount_type as "fixed" | "percentage",
       discountValue: data.discount_value,
       discountAmount,
     });
