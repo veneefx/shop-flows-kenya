@@ -55,12 +55,13 @@ const SettingsPage = () => {
       ]);
       if (s) {
         setShop(s);
+        const shopData = s as any;
         setStoreForm({
           shop_name: s.shop_name || "", description: s.description || "",
           slug: s.slug || "", theme_color: s.theme_color || "#22c55e",
           logo_url: s.logo_url || "",
-          whatsapp_number: s.whatsapp_number || "",
-          address: s.address || "", city: s.city || "",
+          whatsapp_number: shopData.whatsapp_number || "",
+          address: shopData.address || "", city: shopData.city || "",
         });
         setReceiptForm({
           receipt_logo_url: s.receipt_logo_url || "",
@@ -76,9 +77,9 @@ const SettingsPage = () => {
           receipt_qr_url: s.receipt_qr_url || "",
         });
         setLegalForm({
-          privacy_policy: s.privacy_policy || "",
-          terms_of_service: s.terms_of_service || "",
-          refund_policy: s.refund_policy || "",
+          privacy_policy: shopData.privacy_policy || "",
+          terms_of_service: shopData.terms_of_service || "",
+          refund_policy: shopData.refund_policy || "",
         });
       }
       if (p) {
@@ -117,10 +118,7 @@ const SettingsPage = () => {
       slug: storeForm.slug.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
       theme_color: storeForm.theme_color,
       logo_url: storeForm.logo_url || null,
-      whatsapp_number: storeForm.whatsapp_number || null,
-      address: storeForm.address || null,
-      city: storeForm.city || null,
-    }).eq("id", shop.id);
+    } as any).eq("id", shop.id);
     setSaving(null);
     toast({ title: "Store settings saved!" });
   };
@@ -152,7 +150,7 @@ const SettingsPage = () => {
       privacy_policy: legalForm.privacy_policy || null,
       terms_of_service: legalForm.terms_of_service || null,
       refund_policy: legalForm.refund_policy || null,
-    }).eq("id", shop.id);
+    } as any).eq("id", shop.id);
     setSaving(null);
     toast({ title: "Legal pages saved!" });
   };

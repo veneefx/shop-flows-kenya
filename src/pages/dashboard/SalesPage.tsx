@@ -193,7 +193,7 @@ const SalesPage = () => {
       setPromoError("This promo code has expired.");
       return;
     }
-    if (data.usage_limit && data.usage_count >= data.usage_limit) {
+    if (data.max_uses && data.used_count >= data.max_uses) {
       setPromoError("This promo code has reached its usage limit.");
       return;
     }
@@ -207,7 +207,7 @@ const SalesPage = () => {
       id: data.id,
       name: data.name,
       code: data.coupon_code,
-      discountType: data.discount_type,
+      discountType: data.discount_type as "fixed" | "percentage",
       discountValue: data.discount_value,
       discountAmount,
     });
