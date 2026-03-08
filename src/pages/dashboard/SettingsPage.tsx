@@ -55,12 +55,13 @@ const SettingsPage = () => {
       ]);
       if (s) {
         setShop(s);
+        const shopData = s as any;
         setStoreForm({
           shop_name: s.shop_name || "", description: s.description || "",
           slug: s.slug || "", theme_color: s.theme_color || "#22c55e",
           logo_url: s.logo_url || "",
-          whatsapp_number: s.whatsapp_number || "",
-          address: s.address || "", city: s.city || "",
+          whatsapp_number: shopData.whatsapp_number || "",
+          address: shopData.address || "", city: shopData.city || "",
         });
         setReceiptForm({
           receipt_logo_url: s.receipt_logo_url || "",
@@ -76,9 +77,9 @@ const SettingsPage = () => {
           receipt_qr_url: s.receipt_qr_url || "",
         });
         setLegalForm({
-          privacy_policy: s.privacy_policy || "",
-          terms_of_service: s.terms_of_service || "",
-          refund_policy: s.refund_policy || "",
+          privacy_policy: shopData.privacy_policy || "",
+          terms_of_service: shopData.terms_of_service || "",
+          refund_policy: shopData.refund_policy || "",
         });
       }
       if (p) {
