@@ -403,6 +403,8 @@ export type Database = {
       }
       shops: {
         Row: {
+          address: string | null
+          city: string | null
           created_at: string
           description: string | null
           id: string
@@ -411,6 +413,7 @@ export type Database = {
           lipana_secret_key: string | null
           lipana_webhook_secret: string | null
           logo_url: string | null
+          privacy_policy: string | null
           receipt_intro_text: string | null
           receipt_logo_url: string | null
           receipt_paybill: string | null
@@ -422,13 +425,18 @@ export type Database = {
           receipt_slogan: string | null
           receipt_thank_you: string | null
           receipt_till: string | null
+          refund_policy: string | null
           shop_name: string
           slug: string
+          terms_of_service: string | null
           theme_color: string | null
           updated_at: string
           user_id: string
+          whatsapp_number: string | null
         }
         Insert: {
+          address?: string | null
+          city?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -437,6 +445,7 @@ export type Database = {
           lipana_secret_key?: string | null
           lipana_webhook_secret?: string | null
           logo_url?: string | null
+          privacy_policy?: string | null
           receipt_intro_text?: string | null
           receipt_logo_url?: string | null
           receipt_paybill?: string | null
@@ -448,13 +457,18 @@ export type Database = {
           receipt_slogan?: string | null
           receipt_thank_you?: string | null
           receipt_till?: string | null
+          refund_policy?: string | null
           shop_name: string
           slug: string
+          terms_of_service?: string | null
           theme_color?: string | null
           updated_at?: string
           user_id: string
+          whatsapp_number?: string | null
         }
         Update: {
+          address?: string | null
+          city?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -463,6 +477,7 @@ export type Database = {
           lipana_secret_key?: string | null
           lipana_webhook_secret?: string | null
           logo_url?: string | null
+          privacy_policy?: string | null
           receipt_intro_text?: string | null
           receipt_logo_url?: string | null
           receipt_paybill?: string | null
@@ -474,11 +489,14 @@ export type Database = {
           receipt_slogan?: string | null
           receipt_thank_you?: string | null
           receipt_till?: string | null
+          refund_policy?: string | null
           shop_name?: string
           slug?: string
+          terms_of_service?: string | null
           theme_color?: string | null
           updated_at?: string
           user_id?: string
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
