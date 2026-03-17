@@ -28,9 +28,17 @@ const ReviewsSection = () => {
   useEffect(() => {
     fetchReviews();
     
-    // Subscribe to real-time updates for approved reviews
+    // Subscribe to real-time updates for approved reviews (INSERT and UPDATE)
     const channel = supabase
       .channel("reviews-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "reviews", filter: "is_approved=eq.true" },
+        (payload) => {
+          const newReview = payload.new as Review;
+          setReviews(prev => [newReview, ...prev]);
+        }
+      )
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "reviews", filter: "is_approved=eq.true" },
@@ -41,7 +49,7 @@ const ReviewsSection = () => {
             if (exists) {
               return prev.map(r => r.id === updatedReview.id ? updatedReview : r);
             } else {
-              return [updatedReview, ...prev].slice(0, 6);
+              return [updatedReview, ...prev];
             }
           });
         }
@@ -59,8 +67,7 @@ const ReviewsSection = () => {
         .from("reviews")
         .select("*")
         .eq("is_approved", true)
-        .order("created_at", { ascending: false })
-        .limit(6);
+        .order("created_at", { ascending: false });
       if (error) {
         console.error("Error fetching reviews:", error);
       }
@@ -172,13 +179,16 @@ const ReviewsSection = () => {
           </div>
         ) : reviews.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {reviews.map((r, i) => (
+            {reviews.map((r, i) => {
+              // Show every other review if more than 12, otherwise show all
+              if (reviews.length > 12 && i % 2 !== 0) return null;
+              return (
               <motion.div
                 key={r.id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
+                transition={{ delay: (i % 2 === 0 ? i / 2 : (i - 1) / 2) * 0.1, duration: 0.5 }}
                 className="bg-card rounded-3xl p-7 border border-border hover:border-primary/30 hover:shadow-[0_8px_32px_-8px_hsl(142_71%_45%/0.2)] transition-all duration-300 flex flex-col"
               >
                 {/* Stars */}
@@ -202,8 +212,9 @@ const ReviewsSection = () => {
                     <p className="text-xs text-muted-foreground font-body mt-0.5">{r.business}</p>
                   )}
                 </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-12 text-muted-foreground font-body">

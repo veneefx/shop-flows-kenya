@@ -1,0 +1,22 @@
+-- Add 20 sample reviews for the landing page
+INSERT INTO public.reviews (name, business, content, rating, is_approved, created_at) VALUES
+('Jane Wanjiku', 'Fashion Boutique Nairobi', 'Duka Langu has transformed how I manage my inventory. The POS system is incredibly fast and the M-Pesa integration is seamless. Highly recommended!', 5, true, NOW() - INTERVAL '45 days'),
+('Samuel Kipchoge', 'Kipchoge Electronics', 'The analytics dashboard gives me real-time insights into my sales. I can now make data-driven decisions for my business. Excellent platform!', 5, true, NOW() - INTERVAL '42 days'),
+('Grace Omondi', 'Grace Beauty Salon', 'Customer management features are top-notch. I can track repeat customers and their preferences easily. This has improved my service quality significantly.', 5, true, NOW() - INTERVAL '38 days'),
+('David Kariuki', 'Kariuki Hardware Store', 'The offline mode is a lifesaver! Even when internet goes down, I can still process sales. Everything syncs automatically when I''m back online.', 4, true, NOW() - INTERVAL '35 days'),
+('Mary Mwangi', 'Mwangi Supermarket', 'Inventory management is so much easier now. I get alerts when stock is running low. No more overstocking or stockouts!', 5, true, NOW() - INTERVAL '32 days'),
+('Peter Koech', 'Koech Pharmacy', 'The staff management feature lets me track who''s selling what. Great for identifying top performers and training needs.', 4, true, NOW() - INTERVAL '28 days'),
+('Susan Kiplagat', 'Kiplagat Clothing Store', 'Duka Langu''s mobile app makes it easy to manage my shop from anywhere. I can check sales and inventory on the go!', 5, true, NOW() - INTERVAL '25 days'),
+('James Muthui', 'Muthui Butchery', 'The WhatsApp receipts feature is amazing. Customers love getting their receipts instantly. It''s increased customer satisfaction.', 5, true, NOW() - INTERVAL '22 days'),
+('Alice Njeri', 'Njeri Bakery', 'The promo code system helps me run targeted campaigns. I can see exactly how many customers use each coupon.', 4, true, NOW() - INTERVAL '18 days'),
+('Michael Ochieng', 'Ochieng Bookstore', 'Customer support is responsive and helpful. They helped me set up everything in less than an hour. Great experience!', 5, true, NOW() - INTERVAL '15 days'),
+('Rebecca Kimani', 'Kimani Cosmetics', 'The analytics show me which products are bestsellers. I''ve optimized my inventory based on these insights and increased profits!', 5, true, NOW() - INTERVAL '12 days'),
+('Thomas Kipkemboi', 'Kipkemboi Shoe Store', 'Integration with M-Pesa is perfect for my business. Customers can pay instantly and I get the money in my account immediately.', 5, true, NOW() - INTERVAL '9 days'),
+('Catherine Wambui', 'Wambui Vegetable Stand', 'Simple and easy to use. I''m not tech-savvy but I learned to use Duka Langu in just one day. Excellent interface!', 4, true, NOW() - INTERVAL '6 days'),
+('Joseph Kipchoge', 'Kipchoge Cyber Cafe', 'The reporting features are comprehensive. I can export sales data and analyze trends. Very professional!', 5, true, NOW() - INTERVAL '3 days'),
+('Eunice Mwangi', 'Mwangi Salon & Spa', 'Customer loyalty program integration is fantastic. I can reward repeat customers and increase retention.', 5, true, NOW() - INTERVAL '2 days'),
+('Daniel Kiplagat', 'Kiplagat Petrol Station', 'The system handles high transaction volumes without any lag. Perfect for my busy gas station!', 5, true, NOW()),
+('Victoria Omondi', 'Omondi Boutique', 'Duka Langu helped me go digital. Now I have an online store alongside my physical shop. Sales have doubled!', 5, true, NOW() - INTERVAL '1 day'),
+('Christopher Mwangi', 'Mwangi Restaurant', 'Table management and order tracking features are excellent. My restaurant operations are now streamlined.', 4, true, NOW() - INTERVAL '4 days'),
+('Elizabeth Kipchoge', 'Kipchoge Pharmacy Plus', 'The inventory alerts help me maintain optimal stock levels. No more expired products or stockouts!', 5, true, NOW() - INTERVAL '7 days'),
+('Robert Kariuki', 'Kariuki General Store', 'Best investment for my business. The ROI has been amazing. I''ve recovered my investment in just 3 months!', 5, true, NOW() - INTERVAL '10 days');

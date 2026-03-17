@@ -61,6 +61,18 @@ const ProductsPage = () => {
       setShopId(shop.id);
       const { data } = await supabase.from("products").select("*").eq("shop_id", shop.id).order("created_at", { ascending: false });
       setProducts((data as Product[]) || []);
+      
+      // Check if there's a scanned barcode from SalesPage
+      const scannedBarcode = sessionStorage.getItem('scannedBarcode');
+      if (scannedBarcode) {
+        sessionStorage.removeItem('scannedBarcode');
+        setEditProduct(null);
+        setForm({ name: "", price: "", stock: "", category: "", description: "", image_url: "", is_active: true, sizes: "", colors: "", brand: "", sku: scannedBarcode, weight: "", is_featured: false, video_url: "", is_adult: false });
+        setFormImages([]);
+        setPrimaryImageIndex(0);
+        setShowForm(true);
+      }
+      
       setLoading(false);
     };
     init();

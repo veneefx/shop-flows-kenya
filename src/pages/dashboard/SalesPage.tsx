@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   ShoppingCart, Search, Plus, Minus, Trash2,
   Banknote, Smartphone, Receipt, Loader2, WifiOff, Wifi,
@@ -32,6 +33,7 @@ interface AppliedPromo {
 
 const SalesPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [products, setProducts] = useState<any[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [search, setSearch] = useState("");
@@ -144,9 +146,12 @@ const SalesPage = () => {
             addToCart(found);
             stopScanner();
           } else {
-            setSearch(decodedText);
+            // Product not found - navigate to ProductsPage with SKU pre-filled
             stopScanner();
-            toast({ title: "Barcode scanned", description: `Searching: ${decodedText}` });
+            // Store the scanned barcode in sessionStorage to pass to ProductsPage
+            sessionStorage.setItem('scannedBarcode', decodedText);
+            navigate('/dashboard/products');
+            toast({ title: "Product not found", description: `Creating new product with SKU: ${decodedText}` });
           }
         },
         () => {}
