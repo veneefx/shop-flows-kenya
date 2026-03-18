@@ -30,6 +30,7 @@ import DeliveryPage from "./pages/dashboard/DeliveryPage";
 import ActivityLogsPage from "./pages/dashboard/ActivityLogsPage";
 import HardwareSettingsPage from "./pages/dashboard/HardwareSettingsPage";
 import AIInsightsPage from "./pages/dashboard/AIInsightsPage";
+import DashboardHome from "./pages/dashboard/DashboardHome";
 import PublicStorePage from "./pages/PublicStorePage";
 import AIAssistant from "./components/AIAssistant";
 
@@ -48,7 +49,7 @@ const App = () => (
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/store/:slug" element={<PublicStorePage />} />
               <Route path="/dashboard" element={<DashboardLayout />}>
-                <Route index element={<DashboardOverview />} />
+                <Route index element={<DashboardHome />} />
                 <Route path="sales" element={<SalesPage />} />
                 <Route path="inventory" element={<InventoryPage />} />
                 <Route path="products" element={<ProductsPage />} />
