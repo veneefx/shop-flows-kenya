@@ -1,14 +1,15 @@
-import { Outlet, Navigate, useLocation } from "react-router-dom";
+import { Outlet, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
-import { Loader2, Bell, Search } from "lucide-react";
+import { Loader2, ArrowLeft, Store, Bell, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
 const DashboardLayout = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const { pathname } = useLocation();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
   const isHomePage = pathname === "/dashboard" || pathname === "/dashboard/";
 
   if (loading) {
@@ -21,37 +22,94 @@ const DashboardLayout = () => {
 
   if (!user) return <Navigate to="/auth" replace />;
 
-  return (
-    <div className="min-h-screen bg-background flex">
-      {!isHomePage && <DashboardSidebar />}
+  const handleBack = () => {
+    navigate("/dashboard");
+  };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate("/auth");
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Minimal Header - Only show on non-home pages */}
+      {!isHomePage && (
+        <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
+          <div className="max-w-full mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
+            {/* Left: Back Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleBack}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-accent transition-colors text-foreground font-display font-semibold text-sm"
+            >
+              <ArrowLeft size={16} />
+              Back
+            </motion.button>
+
+            {/* Center: Logo/Branding */}
+            <div className="flex items-center gap-2 absolute left-1/2 transform -translate-x-1/2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <Store size={16} className="text-primary-foreground" />
+              </div>
+              <h1 className="font-display font-black text-base text-foreground hidden sm:block">
+                Duka Langu
+              </h1>
+            </div>
+
+            {/* Right: Notifications & Profile */}
+            <div className="flex items-center gap-3">
+              <button className="w-9 h-9 rounded-lg flex items-center justify-center bg-secondary hover:bg-accent transition-colors relative">
+                <Bell size={16} className="text-muted-foreground" />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary" />
+              </button>
+
+              {/* User Menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10 hover:bg-primary/20 transition-colors text-primary font-display font-bold text-xs"
+                >
+                  {user?.email?.charAt(0).toUpperCase() || "U"}
+                </button>
+
+                {showUserMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg p-2 z-50"
+                  >
+                    <div className="px-3 py-2 border-b border-border mb-2">
+                      <p className="text-xs text-muted-foreground font-body">Signed in as</p>
+                      <p className="text-sm font-display font-semibold text-foreground truncate">
+                        {user?.email}
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition-colors text-red-600 dark:text-red-400 text-sm font-display font-semibold"
+                    >
+                      <LogOut size={14} />
+                      Logout
+                    </button>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+      )}
+
+      {/* Main Content - Full Width */}
       <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className={`flex-1 ${!isHomePage ? 'ml-[68px] lg:ml-[240px]' : 'ml-0'} flex flex-col min-h-screen transition-all duration-200`}
-        id="dashboard-main"
+        className="flex-1 w-full"
       >
-        {!isHomePage && (
-          <header className="sticky top-0 z-30 h-14 bg-background/80 backdrop-blur-md border-b border-border flex items-center justify-between px-6">
-            <div className="flex items-center gap-3">
-              <div className="relative hidden sm:block">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input placeholder="Search..." className="pl-9 pr-4 py-1.5 rounded-lg bg-secondary border border-border text-xs font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring w-48" />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="w-9 h-9 rounded-xl flex items-center justify-center bg-secondary hover:bg-accent transition-colors relative">
-                <Bell size={16} className="text-muted-foreground" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
-              </button>
-            </div>
-          </header>
-        )}
-
-        <div className={`flex-1 ${!isHomePage ? 'p-4 lg:p-6' : 'p-0'}`}>
-          <Outlet />
-        </div>
+        <Outlet />
       </motion.main>
     </div>
   );

@@ -27,6 +27,7 @@ const DashboardHome = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ todaySales: 0, totalOrders: 0, lowStockCount: 0 });
 
   useEffect(() => {
     const init = async () => {
@@ -37,12 +38,85 @@ const DashboardHome = () => {
       ]);
       setProfile(prof);
       setShop(shops?.[0] || null);
+      
+      // Load real-time stats
+      if (shops?.[0]) {
+        await loadStats(shops[0].id);
+        subscribeToStats(shops[0].id);
+      }
       setLoading(false);
     };
     init();
   }, [user]);
 
+  const loadStats = async (shopId: string) => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const [{ data: orders }, { data: products }] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("total_amount")
+          .eq("shop_id", shopId)
+          .eq("status", "paid")
+          .gte("created_at", today.toISOString()),
+        supabase
+          .from("products")
+          .select("id, quantity")
+          .eq("shop_id", shopId)
+          .lt("quantity", 10),
+      ]);
+      
+      const todaySales = (orders || []).reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const lowStockCount = (products || []).length;
+      
+      setStats({
+        todaySales,
+        totalOrders: (orders || []).length,
+        lowStockCount,
+      });
+    } catch (error) {
+      console.error("Error loading stats:", error);
+    }
+  };
+
+  const subscribeToStats = (shopId: string) => {
+    const ordersSubscription = supabase
+      .channel(`orders-${shopId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "orders", filter: `shop_id=eq.${shopId}` },
+        () => loadStats(shopId)
+      )
+      .subscribe();
+
+    const productsSubscription = supabase
+      .channel(`products-${shopId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "products", filter: `shop_id=eq.${shopId}` },
+        () => loadStats(shopId)
+      )
+      .subscribe();
+
+    return () => {
+      ordersSubscription.unsubscribe();
+      productsSubscription.unsubscribe();
+    };
+  };
+
   const userPlan = profile?.plan || "basic";
+
+  // Cleanup subscriptions on unmount
+  useEffect(() => {
+    return () => {
+      if (shop?.id) {
+        supabase.channel(`orders-${shop.id}`).unsubscribe();
+        supabase.channel(`products-${shop.id}`).unsubscribe();
+      }
+    };
+  }, [shop?.id]);
 
   // Define all tiles
   const allTiles: Tile[] = [
@@ -281,9 +355,9 @@ const DashboardHome = () => {
       <main className="max-w-7xl mx-auto px-4 lg:px-6 py-8">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <StatCard label="Today's Sales" value="KSh 0" icon={<ShoppingCart size={20} />} />
-          <StatCard label="Total Orders" value="0" icon={<Package size={20} />} />
-          <StatCard label="Low Stock" value="0" icon={<AlertCircle size={20} />} />
+          <StatCard label="Today's Sales" value={`KSh ${stats.todaySales.toLocaleString()}`} icon={<ShoppingCart size={20} />} />
+          <StatCard label="Total Orders" value={stats.totalOrders.toString()} icon={<Package size={20} />} />
+          <StatCard label="Low Stock" value={stats.lowStockCount.toString()} icon={<AlertCircle size={20} />} />
           <StatCard label="Plan" value={userPlan.toUpperCase()} icon={<Zap size={20} />} />
         </div>
 
