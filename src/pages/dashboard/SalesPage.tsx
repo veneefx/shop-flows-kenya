@@ -1,17 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  ShoppingCart, Search, Plus, Minus, Trash2,
-  Banknote, Smartphone, Receipt, Loader2, WifiOff, Wifi,
-  CloudUpload, Camera, X, Tag, CheckCircle, AlertCircle, Package
+  ShoppingCart, Search, Plus, Minus, Trash2, Banknote, Smartphone,
+  Receipt, Loader2, Camera, X, Tag, AlertCircle, Package, Volume2, ArrowLeft
 } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
-import { requestNativeCameraPermission, getPreferredCameraId } from "@/lib/barcodeScanner";
 import ReceiptGenerator from "@/components/receipt/ReceiptGenerator";
 
 interface CartItem {
@@ -41,7 +39,7 @@ const SalesPage = () => {
   const [shopData, setShopData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
-  const [payMethod, setPayMethod] = useState<"cash" | "mpesa">("cash");
+  const [payMethod, setPayMethod] = useState<"cash" | "mpesa" | "card" | "credit">("cash");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [manualDiscount, setManualDiscount] = useState(0);
@@ -55,6 +53,7 @@ const SalesPage = () => {
   const [scannerError, setScannerError] = useState("");
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Promo code
   const [promoInput, setPromoInput] = useState("");
@@ -80,7 +79,18 @@ const SalesPage = () => {
       setLoading(false);
     };
     init();
-  }, [user]);
+
+    // Subscribe to product changes
+    if (shopId) {
+      const subscription = supabase
+        .channel(`products-${shopId}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "products", filter: `shop_id=eq.${shopId}` }, () => {
+          init();
+        })
+        .subscribe();
+      return () => { subscription.unsubscribe(); };
+    }
+  }, [user, shopId]);
 
   // Cleanup scanner on unmount
   useEffect(() => {
@@ -92,12 +102,17 @@ const SalesPage = () => {
     };
   }, []);
 
+  const playBeep = () => {
+    if (audioRef.current) audioRef.current.play().catch(() => {});
+  };
+
   const addToCart = useCallback((p: any) => {
     setCart(prev => {
       const exists = prev.find(c => c.id === p.id);
       if (exists) return prev.map(c => c.id === p.id ? { ...c, qty: c.qty + 1 } : c);
       return [...prev, { id: p.id, name: p.name, price: p.price, qty: 1, image: p.images?.[0] }];
     });
+    playBeep();
     toast({ title: `Added: ${p.name}`, description: `KSh ${Number(p.price).toLocaleString()}` });
   }, []);
 
@@ -121,21 +136,25 @@ const SalesPage = () => {
     return words.every(w => target.includes(w));
   });
 
-  // Barcode scanner
+  // Barcode scanner - OPTIMIZED FOR SPEED
   const startScanner = useCallback(async () => {
     setScannerError("");
     try {
-      await requestNativeCameraPermission();
       setScanning(true);
       await new Promise(r => setTimeout(r, 150));
       const el = document.getElementById("pos-barcode-scanner");
       if (!el) { setScanning(false); return; }
-      const cameraId = await getPreferredCameraId();
+      
       const scanner = new Html5Qrcode("pos-barcode-scanner");
       scannerRef.current = scanner;
+      
+      // Get rear camera
+      const cameras = await Html5Qrcode.getCameras();
+      const rearCamera = cameras.find(c => c.label.toLowerCase().includes("back") || c.label.toLowerCase().includes("rear")) || cameras[cameras.length - 1];
+      
       await scanner.start(
-        cameraId,
-        { fps: 15, qrbox: { width: 280, height: 120 } },
+        rearCamera?.id || cameras[0]?.id,
+        { fps: 30, qrbox: { width: 300, height: 150 } },
         (decodedText) => {
           const found = products.find(
             p => p.sku === decodedText ||
@@ -145,475 +164,414 @@ const SalesPage = () => {
           if (found) {
             addToCart(found);
             stopScanner();
-          } else {
-            // Product not found - navigate to ProductsPage with SKU pre-filled
-            stopScanner();
-            // Store the scanned barcode in sessionStorage to pass to ProductsPage
-            sessionStorage.setItem('scannedBarcode', decodedText);
-            navigate('/dashboard/products');
-            toast({ title: "Product not found", description: `Creating new product with SKU: ${decodedText}` });
           }
         },
-        () => {}
+        (error) => {}
       );
     } catch (err: any) {
+      setScannerError(err.message || "Camera error");
       setScanning(false);
-      const msg = err?.message || "Camera error";
-      setScannerError(
-        msg.includes("Permission") || msg.includes("permission")
-          ? "Camera permission denied. Please allow camera access in your browser settings and try again."
-          : msg.includes("No camera") || msg.includes("no camera")
-          ? "No camera found on this device."
-          : `Scanner error: ${msg}`
-      );
     }
   }, [products, addToCart]);
 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
-      try { await scannerRef.current.stop(); } catch {}
-      scannerRef.current = null;
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current = null;
+      } catch (e) {}
     }
     setScanning(false);
   }, []);
 
-  // Apply promo code
-  const applyPromo = async () => {
+  // Promo code validation
+  const applyPromo = useCallback(async () => {
     if (!promoInput.trim() || !shopId) return;
-    setPromoError("");
     setPromoLoading(true);
-    const { data, error } = await supabase
-      .from("promotions")
-      .select("*")
-      .eq("shop_id", shopId)
-      .eq("coupon_code", promoInput.trim().toUpperCase())
-      .eq("is_active", true)
-      .maybeSingle();
+    setPromoError("");
+    try {
+      const { data, error } = await supabase
+        .from("promotions")
+        .select("*")
+        .eq("shop_id", shopId)
+        .eq("code", promoInput.toUpperCase())
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (error || !data) {
+        setPromoError("Invalid promo code");
+        setPromoLoading(false);
+        return;
+      }
+
+      if (data.ends_at && new Date(data.ends_at) < new Date()) {
+        setPromoError("Promo code expired");
+        setPromoLoading(false);
+        return;
+      }
+
+      if (data.usage_limit && data.used_count >= data.usage_limit) {
+        setPromoError("Promo code limit reached");
+        setPromoLoading(false);
+        return;
+      }
+
+      let discountAmount = 0;
+      if (data.discount_type === "percentage") {
+        discountAmount = (subtotal * data.discount_value) / 100;
+      } else {
+        discountAmount = data.discount_value;
+      }
+
+      setAppliedPromo({
+        id: data.id,
+        name: data.name,
+        code: data.code,
+        discountType: data.discount_type,
+        discountValue: data.discount_value,
+        discountAmount,
+      });
+      toast({ title: "Promo applied!", description: `Discount: KSh ${discountAmount.toLocaleString()}` });
+    } catch (err) {
+      setPromoError("Error applying promo");
+    }
     setPromoLoading(false);
-    if (error || !data) {
-      setPromoError("Invalid or expired promo code.");
-      return;
-    }
-    if (data.ends_at && new Date(data.ends_at) < new Date()) {
-      setPromoError("This promo code has expired.");
-      return;
-    }
-    if (data.max_uses && data.used_count >= data.max_uses) {
-      setPromoError("This promo code has reached its usage limit.");
-      return;
-    }
-    let discountAmount = 0;
-    if (data.discount_type === "percentage") {
-      discountAmount = Math.round((subtotal * data.discount_value) / 100);
-    } else {
-      discountAmount = Math.min(data.discount_value, subtotal);
-    }
-    setAppliedPromo({
-      id: data.id,
-      name: data.name,
-      code: data.coupon_code,
-      discountType: data.discount_type as "fixed" | "percentage",
-      discountValue: data.discount_value,
-      discountAmount,
-    });
-    toast({ title: `✅ Promo applied: ${data.name}`, description: `Saving KSh ${discountAmount.toLocaleString()}` });
-  };
+  }, [promoInput, shopId, subtotal]);
 
   const removePromo = () => {
     setAppliedPromo(null);
     setPromoInput("");
-    setPromoError("");
   };
 
-  const resetCart = () => {
-    setCart([]);
-    setCustomerPhone("");
-    setCustomerName("");
-    setManualDiscount(0);
-    setAppliedPromo(null);
-    setPromoInput("");
-    setPromoError("");
-  };
-
-  const placeOrder = async () => {
-    if (!shopId || cart.length === 0) return;
-    if (!customerPhone.trim()) {
-      toast({ title: "Enter customer phone", variant: "destructive" });
+  // Place order
+  const placeOrder = useCallback(async () => {
+    if (cart.length === 0) {
+      toast({ title: "Cart is empty", variant: "destructive" });
       return;
     }
+
     setPlacing(true);
-    const orderData = {
-      shop_id: shopId,
-      customer_phone: customerPhone,
-      customer_name: customerName || null,
-      total,
-      status: payMethod === "cash" ? "paid" : "pending",
-      items: cart.map(c => ({ name: c.name, price: c.price, qty: c.qty })),
-      notes: [
-        manualDiscount > 0 ? `Manual Discount: KSh ${manualDiscount}` : null,
-        appliedPromo ? `Promo: ${appliedPromo.code} (-KSh ${appliedPromo.discountAmount})` : null,
-      ].filter(Boolean).join(" | ") || null,
-    };
+    try {
+      const orderData = {
+        shop_id: shopId,
+        customer_name: customerName || "Walk-in Customer",
+        customer_phone: customerPhone,
+        items: cart.map(c => ({ product_id: c.id, quantity: c.qty, price: c.price })),
+        subtotal_amount: subtotal,
+        discount_amount: totalDiscount,
+        total_amount: total,
+        payment_method: payMethod,
+        status: payMethod === "credit" ? "pending" : "paid",
+        created_at: new Date().toISOString(),
+      };
 
-    if (!isOnline) {
-      const offlineOrder = saveOfflineOrder(orderData);
+      if (isOnline) {
+        const { data, error } = await supabase.from("orders").insert([orderData]).select().single();
+        if (error) throw error;
+        setLastOrder(data);
+      } else {
+        await saveOfflineOrder(orderData);
+        setLastOrder(orderData);
+      }
+
       setLastSubtotal(subtotal);
       setLastDiscount(totalDiscount);
-      setLastOrder({ ...orderData, id: offlineOrder.id, created_at: offlineOrder.created_at });
       setShowReceipt(true);
-      resetCart();
-      setPlacing(false);
-      return;
-    }
+      setCart([]);
+      setCustomerName("");
+      setCustomerPhone("");
+      setManualDiscount(0);
+      setAppliedPromo(null);
+      setPromoInput("");
 
-    const { data, error } = await supabase.from("orders").insert(orderData).select().single();
+      toast({ title: "Sale completed!", description: `Total: KSh ${total.toLocaleString()}` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    }
     setPlacing(false);
-    if (!error && data) {
-      setLastSubtotal(subtotal);
-      setLastDiscount(totalDiscount);
-      setLastOrder(data);
-      setShowReceipt(true);
-      toast({ title: "✅ Order placed!", description: `KSh ${total.toLocaleString()} — ${payMethod.toUpperCase()}` });
-      resetCart();
-    } else {
-      toast({ title: "Error placing order", variant: "destructive" });
-    }
-  };
+  }, [cart, shopId, subtotal, totalDiscount, total, payMethod, customerName, customerPhone, isOnline, saveOfflineOrder]);
 
-  if (loading) return (
-    <div className="grid lg:grid-cols-[1fr_360px] gap-4 h-[calc(100vh-120px)]">
-      <div className="bg-card rounded-2xl border border-border animate-pulse" />
-      <div className="bg-card rounded-2xl border border-border animate-pulse" />
-    </div>
-  );
-
-  if (!shopId) return (
-    <div className="text-center py-20">
-      <ShoppingCart size={40} className="text-muted-foreground mx-auto mb-4" />
-      <p className="font-display font-semibold text-foreground">No store found</p>
-      <p className="text-sm text-muted-foreground font-body mt-1">Go to Settings to set up your store first</p>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 size={32} className="text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="font-display font-black text-2xl text-foreground">Sales Terminal</h1>
-        <div className="flex items-center gap-2">
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-display font-semibold ${isOnline ? "bg-accent text-primary" : "bg-orange-100 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400"}`}>
-            {isOnline ? <Wifi size={12} /> : <WifiOff size={12} />}
-            {isOnline ? "Online" : "Offline"}
-          </div>
-          {pendingCount > 0 && (
-            <button onClick={syncOrders} disabled={syncing || !isOnline}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 text-xs font-display font-semibold disabled:opacity-50">
-              {syncing ? <Loader2 size={12} className="animate-spin" /> : <CloudUpload size={12} />}
-              {pendingCount} pending
-            </button>
-          )}
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Audio for beep */}
+      <audio ref={audioRef} src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj==" />
+
+      {/* Header with Back Button */}
+      <div className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-40">
+        <div className="max-w-full px-4 lg:px-6 py-4 flex items-center justify-between">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-accent transition-colors text-foreground font-display font-semibold text-sm"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </motion.button>
+          <h1 className="font-display font-black text-lg text-foreground">POS - Sales Terminal</h1>
+          <div className="w-12" />
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_360px] gap-4" style={{ minHeight: "calc(100vh - 180px)" }}>
-        {/* LEFT: Product Grid */}
-        <div className="bg-card rounded-2xl border border-border flex flex-col overflow-hidden">
-          {/* Search + Scanner */}
-          <div className="p-4 border-b border-border space-y-3">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  ref={searchRef}
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Search products, SKU, or category..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-background border border-input text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
-              <button
-                onClick={scanning ? stopScanner : startScanner}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-display font-semibold text-sm transition-all ${scanning ? "bg-red-500 text-white hover:bg-red-600" : "bg-primary text-primary-foreground hover:opacity-90 shadow-brand"}`}
-              >
-                {scanning ? <X size={16} /> : <Camera size={16} />}
-                <span className="hidden sm:inline">{scanning ? "Stop" : "Scan"}</span>
-              </button>
+      {/* Main Content */}
+      <div className="flex-1 flex gap-4 p-4 lg:p-6 overflow-hidden">
+        {/* LEFT: Products Area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Search & Scan */}
+          <div className="flex gap-2 mb-4">
+            <div className="flex-1 relative">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                ref={searchRef}
+                type="text"
+                placeholder="Search products or scan barcode..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-secondary border border-border text-sm font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
-
-            {/* Scanner UI */}
-            <AnimatePresence>
-              {scanning && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
-                  <div className="relative rounded-xl overflow-hidden border-2 border-primary bg-black">
-                    <div id="pos-barcode-scanner" className="w-full" style={{ minHeight: 200 }} />
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      <div className="w-64 h-20 border-2 border-primary rounded-lg" style={{ boxShadow: "0 0 0 9999px rgba(0,0,0,0.4)" }} />
-                    </div>
-                    <div className="absolute bottom-3 left-0 right-0 text-center">
-                      <span className="inline-block bg-black/70 text-white text-xs px-3 py-1 rounded-full font-body">
-                        Point camera at barcode — auto-detects in &lt;1s
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {scannerError && (
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 text-destructive text-xs font-body">
-                <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
-                <span>{scannerError}</span>
-              </div>
-            )}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={scanning ? stopScanner : startScanner}
+              disabled={loading}
+              className={`px-4 py-2.5 rounded-lg font-display font-semibold text-sm flex items-center gap-2 transition-colors ${
+                scanning
+                  ? "bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+              }`}
+            >
+              <Camera size={16} />
+              {scanning ? "Stop" : "Scan"}
+            </motion.button>
           </div>
 
-          {/* Product Grid */}
-          <div className="flex-1 overflow-y-auto p-4">
-            {filtered.length === 0 ? (
-              <div className="text-center py-16 text-muted-foreground font-body">
-                <Package size={32} className="mx-auto mb-3 text-muted-foreground/40" />
-                <p className="font-display font-semibold text-foreground">No products found</p>
-                <p className="text-sm mt-1">Try a different search or add products in the Products section</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
-                {filtered.map(p => (
-                  <motion.button
-                    key={p.id}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => addToCart(p)}
-                    className="bg-background border border-border rounded-xl p-3 text-left hover:border-primary/40 hover:shadow-[0_4px_16px_-4px_hsl(142_71%_45%/0.2)] transition-all duration-200 group"
-                  >
-                    {p.images?.[0] ? (
-                      <img src={p.images[0]} alt={p.name} className="w-full aspect-square object-cover rounded-lg mb-2" />
-                    ) : (
-                      <div className="w-full aspect-square rounded-lg bg-accent flex items-center justify-center mb-2">
-                        <ShoppingCart size={20} className="text-primary/50" />
-                      </div>
-                    )}
-                    <p className="font-display font-semibold text-xs text-foreground truncate group-hover:text-primary transition-colors">{p.name}</p>
-                    <p className="font-display font-black text-sm text-primary mt-0.5">KSh {Number(p.price).toLocaleString()}</p>
-                    {p.stock !== undefined && (
-                      <p className={`text-[10px] font-body mt-0.5 ${p.stock < 5 ? "text-red-500" : "text-muted-foreground"}`}>
-                        {p.stock < 5 ? `⚠ ${p.stock} left` : `${p.stock} in stock`}
-                      </p>
-                    )}
-                  </motion.button>
-                ))}
-              </div>
+          {/* Scanner Modal */}
+          <AnimatePresence>
+            {scanning && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="mb-4 p-4 rounded-lg bg-card border border-border"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-display font-semibold text-foreground">Scanning...</h3>
+                  <button onClick={stopScanner} className="text-muted-foreground hover:text-foreground">
+                    <X size={16} />
+                  </button>
+                </div>
+                <div id="pos-barcode-scanner" className="w-full h-64 rounded-lg bg-black" />
+                {scannerError && <p className="text-xs text-red-600 dark:text-red-400 mt-2">{scannerError}</p>}
+              </motion.div>
             )}
+          </AnimatePresence>
+
+          {/* Product Grid */}
+          <div className="flex-1 overflow-y-auto pr-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {filtered.map((product) => (
+                <motion.button
+                  key={product.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => addToCart(product)}
+                  className="p-3 rounded-lg bg-card border border-border hover:border-primary/50 transition-all text-left"
+                >
+                  {product.images?.[0] && (
+                    <img src={product.images[0]} alt={product.name} className="w-full h-24 object-cover rounded mb-2" />
+                  )}
+                  <p className="text-xs font-display font-semibold text-foreground truncate">{product.name}</p>
+                  <p className="text-xs text-muted-foreground mb-2">Stock: {product.quantity || 0}</p>
+                  <p className="text-sm font-display font-black text-primary">KSh {Number(product.price).toLocaleString()}</p>
+                </motion.button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* RIGHT: Cart */}
-        <div className="bg-card rounded-2xl border border-border flex flex-col overflow-hidden">
-          {/* Cart Header */}
-          <div className="p-4 border-b border-border flex items-center justify-between">
-            <h2 className="font-display font-bold text-foreground flex items-center gap-2">
-              <ShoppingCart size={18} className="text-primary" /> Cart
-              {cart.length > 0 && (
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-                  {cart.reduce((s, c) => s + c.qty, 0)}
-                </span>
-              )}
-            </h2>
-            {cart.length > 0 && (
-              <button onClick={resetCart} className="text-xs text-muted-foreground hover:text-destructive font-display font-semibold transition-colors">
-                Clear all
-              </button>
-            )}
-          </div>
+        {/* RIGHT: Cart & Checkout */}
+        <div className="w-80 flex flex-col bg-card rounded-xl border border-border p-4 shadow-lg">
+          <h2 className="font-display font-bold text-lg text-foreground mb-4">Shopping Cart</h2>
 
           {/* Cart Items */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+          <div className="flex-1 overflow-y-auto mb-4 space-y-2 pr-2">
             {cart.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground font-body">
-                <ShoppingCart size={28} className="mx-auto mb-2 text-muted-foreground/30" />
-                <p className="text-sm">Cart is empty</p>
-                <p className="text-xs mt-1">Tap a product or scan a barcode</p>
+              <div className="text-center py-8 text-muted-foreground">
+                <ShoppingCart size={32} className="mx-auto mb-2 opacity-50" />
+                <p className="text-xs">Cart is empty</p>
               </div>
             ) : (
-              cart.map(item => (
-                <div key={item.id} className="flex items-center gap-2 p-2.5 rounded-xl bg-background border border-border">
+              cart.map((item) => (
+                <motion.div key={item.id} layout className="flex items-center justify-between gap-2 p-2 bg-background rounded-lg">
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-display font-semibold text-foreground truncate">{item.name}</p>
-                    <p className="text-xs text-primary font-bold">KSh {(item.price * item.qty).toLocaleString()}</p>
-                    <p className="text-[10px] text-muted-foreground font-body">{item.qty} × KSh {item.price.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">KSh {Number(item.price).toLocaleString()}</p>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 rounded-md bg-secondary flex items-center justify-center hover:bg-accent transition-colors">
-                      <Minus size={11} />
+                    <button onClick={() => updateQty(item.id, -1)} className="p-1 rounded bg-secondary hover:bg-accent">
+                      <Minus size={12} />
                     </button>
-                    <span className="w-6 text-center text-xs font-display font-bold text-foreground">{item.qty}</span>
-                    <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 rounded-md bg-secondary flex items-center justify-center hover:bg-accent transition-colors">
-                      <Plus size={11} />
+                    <span className="w-6 text-center text-xs font-display font-semibold">{item.qty}</span>
+                    <button onClick={() => updateQty(item.id, 1)} className="p-1 rounded bg-secondary hover:bg-accent">
+                      <Plus size={12} />
+                    </button>
+                    <button onClick={() => removeItem(item.id)} className="p-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-600">
+                      <Trash2 size={12} />
                     </button>
                   </div>
-                  <button onClick={() => removeItem(item.id)} className="text-red-400 hover:text-red-500 transition-colors">
-                    <Trash2 size={13} />
-                  </button>
-                </div>
+                </motion.div>
               ))
             )}
           </div>
 
-          {/* Checkout Area */}
-          <div className="p-3 border-t border-border space-y-2.5">
-            {/* Customer Info */}
-            <input
-              value={customerPhone}
-              onChange={e => setCustomerPhone(e.target.value)}
-              placeholder="Customer phone *"
-              className="w-full px-3 py-2 rounded-lg bg-background border border-input text-xs font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            />
-            <input
-              value={customerName}
-              onChange={e => setCustomerName(e.target.value)}
-              placeholder="Customer name (optional)"
-              className="w-full px-3 py-2 rounded-lg bg-background border border-input text-xs font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            />
-
-            {/* Promo Code */}
-            {!appliedPromo ? (
-              <div className="space-y-1">
-                <div className="flex gap-1.5">
-                  <div className="relative flex-1">
-                    <Tag size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      value={promoInput}
-                      onChange={e => { setPromoInput(e.target.value.toUpperCase()); setPromoError(""); }}
-                      onKeyDown={e => e.key === "Enter" && applyPromo()}
-                      placeholder="Promo code"
-                      className="w-full pl-8 pr-3 py-2 rounded-lg bg-background border border-input text-xs font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring uppercase"
-                    />
-                  </div>
-                  <button
-                    onClick={applyPromo}
-                    disabled={promoLoading || !promoInput.trim()}
-                    className="px-3 py-2 rounded-lg bg-secondary text-foreground text-xs font-display font-semibold hover:bg-accent transition-colors disabled:opacity-50"
-                  >
-                    {promoLoading ? <Loader2 size={12} className="animate-spin" /> : "Apply"}
-                  </button>
-                </div>
-                {promoError && <p className="text-[10px] text-destructive font-body">{promoError}</p>}
-              </div>
-            ) : (
-              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20">
-                <div className="flex items-center gap-2">
-                  <CheckCircle size={14} className="text-green-600 dark:text-green-400" />
-                  <div>
-                    <p className="text-xs font-display font-semibold text-green-700 dark:text-green-400">{appliedPromo.code}</p>
-                    <p className="text-[10px] text-green-600 dark:text-green-500 font-body">-KSh {appliedPromo.discountAmount.toLocaleString()}</p>
-                  </div>
-                </div>
-                <button onClick={removePromo} className="text-green-600 hover:text-red-500 transition-colors">
-                  <X size={14} />
+          {/* Promo Code */}
+          <div className="mb-4 p-3 rounded-lg bg-background">
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                placeholder="Promo code"
+                value={promoInput}
+                onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === "Enter" && applyPromo()}
+                className="flex-1 px-2 py-1.5 rounded text-xs bg-card border border-border focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <button
+                onClick={applyPromo}
+                disabled={promoLoading}
+                className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-xs font-display font-semibold hover:bg-primary/90 disabled:opacity-50"
+              >
+                {promoLoading ? <Loader2 size={12} className="animate-spin" /> : "Apply"}
+              </button>
+            </div>
+            {appliedPromo && (
+              <div className="flex items-center justify-between p-2 rounded bg-green-500/10 border border-green-500/30">
+                <p className="text-xs text-green-600 dark:text-green-400 font-display font-semibold">{appliedPromo.code}</p>
+                <button onClick={removePromo} className="text-green-600 dark:text-green-400 hover:text-green-700">
+                  <X size={12} />
                 </button>
               </div>
             )}
+            {promoError && <p className="text-xs text-red-600 dark:text-red-400">{promoError}</p>}
+          </div>
 
-            {/* Manual Discount */}
-            <input
-              type="number"
-              value={manualDiscount || ""}
-              onChange={e => setManualDiscount(Math.max(0, Number(e.target.value)))}
-              placeholder="Manual discount (KSh)"
-              className="w-full px-3 py-2 rounded-lg bg-background border border-input text-xs font-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-            />
+          {/* Totals */}
+          <div className="space-y-2 mb-4 p-3 rounded-lg bg-background border border-border">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Subtotal:</span>
+              <span className="font-display font-semibold">KSh {subtotal.toLocaleString()}</span>
+            </div>
+            {totalDiscount > 0 && (
+              <div className="flex justify-between text-xs text-green-600 dark:text-green-400">
+                <span>Discount:</span>
+                <span className="font-display font-semibold">-KSh {totalDiscount.toLocaleString()}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm font-display font-black border-t border-border pt-2">
+              <span>TOTAL:</span>
+              <span className="text-primary">KSh {total.toLocaleString()}</span>
+            </div>
+          </div>
 
-            {/* Payment Method */}
-            <div className="flex gap-2">
-              {([["cash", Banknote, "Cash"], ["mpesa", Smartphone, "M-Pesa"]] as const).map(([key, Icon, label]) => (
+          {/* Payment Method */}
+          <div className="mb-4 space-y-2">
+            <p className="text-xs font-display font-semibold text-muted-foreground">Payment Method:</p>
+            <div className="grid grid-cols-2 gap-2">
+              {(["cash", "mpesa", "card", "credit"] as const).map((method) => (
                 <button
-                  key={key}
-                  onClick={() => setPayMethod(key as any)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-display font-semibold transition-all ${payMethod === key ? "bg-primary text-primary-foreground shadow-brand" : "bg-secondary text-foreground hover:bg-accent"}`}
+                  key={method}
+                  onClick={() => setPayMethod(method)}
+                  className={`px-3 py-2 rounded-lg text-xs font-display font-semibold transition-colors ${
+                    payMethod === method
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-foreground hover:bg-accent"
+                  }`}
                 >
-                  <Icon size={14} />{label}
+                  {method === "cash" && "💵 Cash"}
+                  {method === "mpesa" && "📱 M-Pesa"}
+                  {method === "card" && "💳 Card"}
+                  {method === "credit" && "📝 Credit"}
                 </button>
               ))}
             </div>
-
-            {/* M-Pesa Info from Settings */}
-            {payMethod === "mpesa" && (shopData?.receipt_paybill || shopData?.receipt_till) && (
-              <div className="p-2.5 rounded-lg bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 text-center space-y-0.5">
-                {shopData.receipt_show_paybill && shopData.receipt_paybill && (
-                  <p className="text-xs font-display font-bold text-green-800 dark:text-green-300">
-                    Paybill: {shopData.receipt_paybill}
-                    {shopData.receipt_paybill_account && ` · A/C: ${shopData.receipt_paybill_account}`}
-                  </p>
-                )}
-                {shopData.receipt_show_till && shopData.receipt_till && (
-                  <p className="text-xs font-display font-bold text-green-800 dark:text-green-300">
-                    Till: {shopData.receipt_till}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Totals */}
-            <div className="space-y-1 pt-1 border-t border-border">
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground font-body">Subtotal</span>
-                <span className="font-display font-semibold text-foreground">KSh {subtotal.toLocaleString()}</span>
-              </div>
-              {appliedPromo && (
-                <div className="flex justify-between text-xs">
-                  <span className="text-green-600 font-body">Promo ({appliedPromo.code})</span>
-                  <span className="font-display font-semibold text-green-600">-KSh {appliedPromo.discountAmount.toLocaleString()}</span>
-                </div>
-              )}
-              {manualDiscount > 0 && (
-                <div className="flex justify-between text-xs">
-                  <span className="text-red-400 font-body">Manual Discount</span>
-                  <span className="font-display font-semibold text-red-400">-KSh {manualDiscount.toLocaleString()}</span>
-                </div>
-              )}
-              <div className="flex justify-between pt-1 border-t border-dashed border-border">
-                <span className="text-sm font-display font-bold text-foreground">Total</span>
-                <span className="text-sm font-display font-black text-primary">KSh {total.toLocaleString()}</span>
-              </div>
-            </div>
-
-            {/* Complete Sale Button */}
-            <button
-              onClick={placeOrder}
-              disabled={placing || cart.length === 0}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold text-sm shadow-brand hover:opacity-90 transition-all disabled:opacity-50"
-            >
-              {placing ? <Loader2 size={16} className="animate-spin" /> : <Receipt size={16} />}
-              {placing ? "Processing..." : isOnline ? "Complete Sale" : "Save Offline"}
-            </button>
           </div>
+
+          {/* M-Pesa Info */}
+          {payMethod === "mpesa" && shopData?.mpesa_paybill && (
+            <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-xs">
+              <p className="font-display font-semibold text-blue-600 dark:text-blue-400 mb-1">M-Pesa Payment</p>
+              <p className="text-muted-foreground">Paybill: <span className="font-display font-bold">{shopData.mpesa_paybill}</span></p>
+              {shopData.mpesa_account && <p className="text-muted-foreground">Account: <span className="font-display font-bold">{shopData.mpesa_account}</span></p>}
+              {shopData.mpesa_till && <p className="text-muted-foreground">Till: <span className="font-display font-bold">{shopData.mpesa_till}</span></p>}
+            </div>
+          )}
+
+          {/* Complete Sale Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={placeOrder}
+            disabled={placing || cart.length === 0}
+            className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-display font-black text-sm hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {placing ? <Loader2 size={16} className="animate-spin" /> : <Receipt size={16} />}
+            {placing ? "Processing..." : "Complete Sale"}
+          </motion.button>
+
+          {/* Offline Sync Status */}
+          {!isOnline && (
+            <div className="mt-3 p-2 rounded-lg bg-orange-500/10 border border-orange-500/30 text-xs text-orange-600 dark:text-orange-400 text-center">
+              Offline mode - {pendingCount} pending
+            </div>
+          )}
         </div>
       </div>
 
       {/* Receipt Modal */}
-      {showReceipt && lastOrder && (
-        <ReceiptGenerator
-          data={{
-            orderId: lastOrder.id || "offline",
-            shopName: shopData?.shop_name || "My Store",
-            shopLogo: shopData?.receipt_logo_url || shopData?.logo_url || undefined,
-            shopPaybill: shopData?.receipt_show_paybill ? shopData?.receipt_paybill || undefined : undefined,
-            shopPaybillAccount: shopData?.receipt_paybill_account || undefined,
-            shopTill: shopData?.receipt_show_till ? shopData?.receipt_till || undefined : undefined,
-            shopSlogan: shopData?.receipt_slogan || undefined,
-            shopIntroText: shopData?.receipt_intro_text || undefined,
-            shopThankYou: shopData?.receipt_thank_you || undefined,
-            shopLocation: shopData?.description || undefined,
-            items: (lastOrder.items as any[]).map((i: any) => ({ name: i.name, price: i.price, qty: i.qty })),
-            subtotal: lastSubtotal,
-            discount: lastDiscount,
-            total: lastOrder.total,
-            paymentMethod: payMethod,
-            customerName: lastOrder.customer_name || undefined,
-            customerPhone: lastOrder.customer_phone,
-            date: new Date(lastOrder.created_at || Date.now()),
-          }}
-          onClose={() => setShowReceipt(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showReceipt && lastOrder && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-card rounded-xl border border-border max-w-md w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="p-6">
+                <ReceiptGenerator
+                  order={lastOrder}
+                  shopName={shopData?.shop_name}
+                  shopLogo={shopData?.logo_url}
+                  shopIntroText={shopData?.intro_text}
+                  shopThankYou={shopData?.thank_you_text}
+                  shopPaybillAccount={shopData?.mpesa_paybill}
+                  shopPaybillNumber={shopData?.mpesa_account}
+                  shopTillNumber={shopData?.mpesa_till}
+                />
+                <button
+                  onClick={() => setShowReceipt(false)}
+                  className="w-full mt-4 py-2 rounded-lg bg-secondary hover:bg-accent text-foreground font-display font-semibold text-sm"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
