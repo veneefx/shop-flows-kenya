@@ -257,12 +257,9 @@ const SalesPage = () => {
         customer_name: customerName || "Walk-in Customer",
         customer_phone: customerPhone || "N/A",
         items: cart.map(c => ({ product_id: c.id, quantity: c.qty, price: c.price })),
-        subtotal_amount: subtotal,
-        discount_amount: totalDiscount,
-        total_amount: total,
-        total: total, // Keep for backward compatibility
-        payment_method: payMethod,
+        total: total,
         status: payMethod === "credit" ? "pending" : "paid",
+        notes: `Payment: ${payMethod} | Subtotal: KSh ${subtotal} | Discount: KSh ${totalDiscount}`,
       };
 
       if (isOnline) {

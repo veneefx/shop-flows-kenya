@@ -193,12 +193,8 @@ const PublicStorePage = () => {
       customer_phone: customerPhone, 
       items, 
       total: grandTotal, 
-      total_amount: grandTotal,
-      subtotal_amount: cartTotal,
-      discount_amount: promoDiscount,
-      payment_method: paymentMethod,
       status: "pending",
-      notes: `${paymentMethod === "cash" ? "Cash on delivery" : "M-Pesa"} | Shipping: ${shippingMethod}${transactionCode ? ` | TxCode: ${transactionCode}` : ""}`,
+      notes: `${paymentMethod === "cash" ? "Cash on delivery" : "M-Pesa"} | Shipping: ${shippingMethod} | Subtotal: KSh ${cartTotal} | Discount: KSh ${promoDiscount}${transactionCode ? ` | TxCode: ${transactionCode}` : ""}`,
     }).select().single();
 
     if (error) { toast({ title: "Error placing order", variant: "destructive" }); setSubmitting(false); return; }
