@@ -136,12 +136,10 @@ const AIAssistant = () => {
         animate={{ scale: 1 }}
         transition={{ delay: 1, type: "spring" }}
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full shadow-2xl overflow-hidden hover:scale-110 transition-transform duration-200"
-        style={{ boxShadow: "0 8px 32px hsl(142 71% 45% / 0.4)" }}
+        className="fixed bottom-6 left-6 z-50 w-16 h-16 rounded-full shadow-2xl overflow-hidden hover:scale-110 transition-transform duration-200 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20"
+        style={{ boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)" }}
       >
-        <div className="w-full h-full bg-primary flex items-center justify-center">
-          {open ? <X size={22} className="text-white" /> : <img src={logoImg} alt="Vee" className="w-8 h-8 object-contain" />}
-        </div>
+        {open ? <X size={24} className="text-white" /> : <img src={logoImg} alt="Vee" className="w-10 h-10 object-contain" />}
         {!open && <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 border-2 border-white animate-pulse" />}
       </motion.button>
 

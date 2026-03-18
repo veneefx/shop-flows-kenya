@@ -53,13 +53,14 @@ const DashboardHome = () => {
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const todayISO = today.toISOString();
       
-      const [{ data: orders }, { data: products }] = await Promise.all([
+      const [{ data: orders, error: ordersError }, { data: products }] = await Promise.all([
         supabase
           .from("orders")
-          .select("total_amount, total, status, created_at")
+          .select("total, status, created_at")
           .eq("shop_id", shopId)
-          .gte("created_at", today.toISOString()),
+          .gte("created_at", todayISO),
         supabase
           .from("products")
           .select("id, stock")
@@ -67,14 +68,19 @@ const DashboardHome = () => {
           .lt("stock", 10),
       ]);
       
-      const todaySales = (orders || [])
+      if (ordersError) {
+        console.error("Orders error:", ordersError);
+      }
+      
+      const allOrders = orders || [];
+      const todaySales = allOrders
         .filter(o => o.status === "paid" || o.status === "completed")
-        .reduce((sum, o) => sum + (Number(o.total_amount || o.total) || 0), 0);
+        .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
       const lowStockCount = (products || []).length;
       
       setStats({
         todaySales,
-        totalOrders: (orders || []).length,
+        totalOrders: allOrders.length,
         lowStockCount,
       });
     } catch (error) {

@@ -142,9 +142,7 @@ const DashboardSidebar = () => {
       >
         {/* Logo */}
         <div className={`flex items-center gap-3 px-3 h-16 border-b border-sidebar-border flex-shrink-0 ${collapsed ? "justify-center" : ""}`}>
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-brand">
-            <img src={logoImg} alt="Duka Langu" className="w-5 h-5 object-contain" />
-          </div>
+          <img src={logoImg} alt="Duka Langu" className={`flex-shrink-0 object-contain ${collapsed ? "w-8 h-8" : "w-11 h-11"}`} />
           <AnimatePresence>
             {!collapsed && (
               <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }} className="overflow-hidden">

@@ -58,7 +58,7 @@ const Navbar = () => {
               <img
                 src={logoImg}
                 alt="Dukalangu"
-                className="w-10 h-10 object-contain drop-shadow-lg"
+                className="w-12 h-12 object-contain drop-shadow-lg"
               />
               <div className="hidden sm:block">
                 <span className="font-display font-bold text-lg text-white leading-none">Dukalangu</span>
