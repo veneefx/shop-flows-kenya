@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 
 const DashboardLayout = () => {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -27,7 +27,7 @@ const DashboardLayout = () => {
   };
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     navigate("/auth");
   };
 

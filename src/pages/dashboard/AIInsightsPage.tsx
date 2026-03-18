@@ -97,9 +97,9 @@ const AIInsightsPage = () => {
       });
     });
     return products
-      .filter(p => !soldNames.has(p.name?.toLowerCase()) && p.stock > 0)
+      .filter(p => !soldNames.has(p.name?.toLowerCase()) && (p.stock ?? p.quantity ?? 0) > 0)
       .map(p => ({
-        name: p.name, stock: p.stock,
+        name: p.name, stock: (p.stock ?? p.quantity ?? 0),
         daysSinceCreated: Math.floor((Date.now() - new Date(p.created_at).getTime()) / (1000 * 60 * 60 * 24)),
       }))
       .sort((a, b) => b.daysSinceCreated - a.daysSinceCreated)
@@ -117,12 +117,13 @@ const AIInsightsPage = () => {
       });
     });
     return products
-      .filter(p => p.stock > 0 && salesRate[p.name])
+      .filter(p => (p.stock ?? p.quantity ?? 0) > 0 && salesRate[p.name])
       .map(p => {
         const monthlyRate = salesRate[p.name] || 0;
         const dailyRate = monthlyRate / 30;
-        const daysLeft = dailyRate > 0 ? Math.round(p.stock / dailyRate) : 999;
-        return { name: p.name, stock: p.stock, daysLeft, reorderQty: Math.max(10, Math.round(monthlyRate * 1.5)) };
+        const currentStock = (p.stock ?? p.quantity ?? 0);
+        const daysLeft = dailyRate > 0 ? Math.round(currentStock / dailyRate) : 999;
+        return { name: p.name, stock: currentStock, daysLeft, reorderQty: Math.max(10, Math.round(monthlyRate * 1.5)) };
       })
       .filter(p => p.daysLeft < 30)
       .sort((a, b) => a.daysLeft - b.daysLeft)

@@ -86,9 +86,9 @@ const InventoryPage = () => {
   const handleAdjust = async () => {
     if (!adjusting || !adjusting.delta) return;
     setSaving(true);
-    const delta = parseInt(adjusting.delta);
+    const delta = parseInt(adjusting.delta) || 0;
     const newStock = Math.max(0, adjusting.stock + delta);
-    const { error } = await supabase.from("products").update({ stock: newStock }).eq("id", adjusting.id);
+    const { error } = await supabase.from("products").update({ stock: newStock, quantity: newStock }).eq("id", adjusting.id);
     setSaving(false);
     if (!error) {
       setProducts(prev => prev.map(p => p.id === adjusting.id ? { ...p, stock: newStock } : p));
@@ -210,10 +210,10 @@ const InventoryPage = () => {
               <p className="text-xs text-muted-foreground font-mono">{p.sku || "—"}</p>
               <div>
                 <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-display font-semibold ${
-                  p.stock === 0 ? "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400" :
-                  p.stock <= 5 ? "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400" :
+                  (p.stock ?? p.quantity ?? 0) === 0 ? "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400" :
+                  (p.stock ?? p.quantity ?? 0) <= 5 ? "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400" :
                   "bg-accent text-primary"
-                }`}>{p.stock}</span>
+                }`}>{(p.stock ?? p.quantity ?? 0)}</span>
               </div>
               <p className="text-sm font-display font-semibold text-foreground">KSh {p.price.toLocaleString()}</p>
               <p className="text-sm text-muted-foreground font-body">KSh {(p.price * p.stock).toLocaleString()}</p>

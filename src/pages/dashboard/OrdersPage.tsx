@@ -160,12 +160,16 @@ const OrdersPage = () => {
               </div>
               <div className="p-4 rounded-xl bg-secondary space-y-2">
                 <p className="font-display font-semibold text-xs text-muted-foreground uppercase tracking-wide mb-2">Items</p>
-                {Array.isArray(selectedOrder.items) ? selectedOrder.items.map((item: any, i: number) => (
-                  <div key={i} className="flex justify-between text-sm font-body">
-                    <span className="text-foreground">{item.name} × {item.qty || item.quantity || 1}</span>
-                    <span className="text-muted-foreground">KSh {((item.price || 0) * (item.qty || item.quantity || 1)).toLocaleString()}</span>
-                  </div>
-                )) : <p className="text-sm text-muted-foreground font-body">No items data</p>}
+                {Array.isArray(selectedOrder.items) ? selectedOrder.items.map((item: any, i: number) => {
+                  const qty = Number(item.qty || item.quantity || 1);
+                  const price = Number(item.price || 0);
+                  return (
+                    <div key={i} className="flex justify-between text-sm font-body">
+                      <span className="text-foreground">{item.name || "Unknown Item"} × {qty}</span>
+                      <span className="text-muted-foreground">KSh {(price * qty).toLocaleString()}</span>
+                    </div>
+                  );
+                }) : <p className="text-sm text-muted-foreground font-body">No items data</p>}
                 <div className="border-t border-border pt-2 flex justify-between font-display font-bold text-sm">
                   <span className="text-foreground">Total</span>
                   <span className="text-primary">KSh {selectedOrder.total.toLocaleString()}</span>

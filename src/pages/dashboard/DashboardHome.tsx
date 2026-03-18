@@ -21,7 +21,7 @@ interface Tile {
 
 const DashboardHome = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [shop, setShop] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,18 +57,19 @@ const DashboardHome = () => {
       const [{ data: orders }, { data: products }] = await Promise.all([
         supabase
           .from("orders")
-          .select("total_amount, total, status")
+          .select("total_amount, total, status, created_at")
           .eq("shop_id", shopId)
-          .eq("status", "paid")
           .gte("created_at", today.toISOString()),
         supabase
           .from("products")
-          .select("id, quantity")
+          .select("id, stock")
           .eq("shop_id", shopId)
-          .lt("quantity", 10),
+          .lt("stock", 10),
       ]);
       
-      const todaySales = (orders || []).reduce((sum, o) => sum + ((o.total_amount || o.total) || 0), 0);
+      const todaySales = (orders || [])
+        .filter(o => o.status === "paid" || o.status === "completed")
+        .reduce((sum, o) => sum + (Number(o.total_amount || o.total) || 0), 0);
       const lowStockCount = (products || []).length;
       
       setStats({
@@ -316,7 +317,7 @@ const DashboardHome = () => {
   };
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     navigate("/auth");
   };
 

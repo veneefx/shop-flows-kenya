@@ -82,6 +82,14 @@ export const useOfflineSync = () => {
         remaining.push(order);
       } else {
         synced++;
+        // Update stock for each item
+        for (const item of order.items) {
+          const { data: product } = await supabase.from("products").select("stock, quantity").eq("id", item.product_id || item.id).single();
+          if (product) {
+            const newStock = Math.max(0, (product.stock ?? product.quantity ?? 0) - (item.qty || item.quantity || 1));
+            await supabase.from("products").update({ stock: newStock, quantity: newStock }).eq("id", item.product_id || item.id);
+          }
+        }
       }
     }
 

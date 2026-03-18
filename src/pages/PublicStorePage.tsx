@@ -188,19 +188,40 @@ const PublicStorePage = () => {
     setSubmitting(true);
     const items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, size: i.size, color: i.color }));
     const { data: order, error } = await supabase.from("orders").insert({
-      shop_id: shop.id, customer_name: `${customerFirstName} ${customerLastName}`.trim() || null,
-      customer_phone: customerPhone, items, total: grandTotal, status: "pending",
+      shop_id: shop.id, 
+      customer_name: `${customerFirstName} ${customerLastName}`.trim() || null,
+      customer_phone: customerPhone, 
+      items, 
+      total: grandTotal, 
+      total_amount: grandTotal,
+      subtotal_amount: cartTotal,
+      discount_amount: promoDiscount,
+      payment_method: paymentMethod,
+      status: "pending",
       notes: `${paymentMethod === "cash" ? "Cash on delivery" : "M-Pesa"} | Shipping: ${shippingMethod}${transactionCode ? ` | TxCode: ${transactionCode}` : ""}`,
     }).select().single();
 
     if (error) { toast({ title: "Error placing order", variant: "destructive" }); setSubmitting(false); return; }
 
+    // Update stock for each item
+    for (const item of cart) {
+      const product = products.find(p => p.id === item.id);
+      if (product) {
+        const newStock = Math.max(0, (product.stock ?? product.quantity ?? 0) - item.qty);
+        await supabase.from("products").update({ stock: newStock, quantity: newStock }).eq("id", item.id);
+      }
+    }
+
     if (paymentMethod === "mpesa" && !transactionCode) {
       const phone = mpesaPhone || customerPhone;
       try {
+        const { data: { session } } = await supabase.auth.getSession();
         const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/lipana-stk-push`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+          headers: { 
+            "Content-Type": "application/json", 
+            "Authorization": `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` 
+          },
           body: JSON.stringify({ phone, amount: grandTotal, orderId: order.id, shopId: shop.id }),
         });
         const data = await resp.json();
@@ -450,7 +471,7 @@ const PublicStorePage = () => {
 
               <div className="mt-6 space-y-2 text-sm text-gray-500">
                 <p className="flex items-center gap-2"><Truck size={14} /> Free delivery on orders above KSh 5,000</p>
-                {p.stock > 0 ? <p className="flex items-center gap-2 text-green-600">✅ In stock ({p.stock} available)</p> : <p className="text-red-500">❌ Out of stock</p>}
+                {(p.stock ?? p.quantity ?? 0) > 0 ? <p className="flex items-center gap-2 text-green-600">✅ In stock ({(p.stock ?? p.quantity ?? 0)} available)</p> : <p className="text-red-500">❌ Out of stock</p>}
               </div>
             </div>
           </div>
@@ -616,7 +637,7 @@ const PublicStorePage = () => {
                 <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
                   {p.images?.[0] ? <img src={p.images[0]} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     : <div className="w-full h-full flex items-center justify-center"><Package size={40} className="text-gray-200" /></div>}
-                  {p.stock <= 0 && (
+                  {(p.stock ?? p.quantity ?? 0) <= 0 && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <span className="text-white text-xs font-bold bg-black/70 px-3 py-1 rounded-full">OUT OF STOCK</span>
                     </div>

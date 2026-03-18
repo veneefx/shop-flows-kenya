@@ -177,13 +177,25 @@ const ProductsPage = () => {
         ]
       : [];
 
+    const stockVal = parseInt(form.stock) || 0;
     const payload = {
-      name: form.name, price: parseFloat(form.price) || 0, stock: parseInt(form.stock) || 0,
-      category: form.category || null, description: form.description || null,
-      images: orderedImages, is_active: form.is_active, shop_id: shopId,
-      sizes: sizesArr, colors: colorsArr, brand: form.brand || null,
-      sku: form.sku || null, weight: form.weight || null, is_featured: form.is_featured,
-      video_url: form.video_url || null, is_adult: form.is_adult,
+      name: form.name, 
+      price: parseFloat(form.price) || 0, 
+      stock: stockVal,
+      quantity: stockVal,
+      category: form.category || null, 
+      description: form.description || null,
+      images: orderedImages, 
+      is_active: form.is_active, 
+      shop_id: shopId,
+      sizes: sizesArr, 
+      colors: colorsArr, 
+      brand: form.brand || null,
+      sku: form.sku || null, 
+      weight: form.weight || null, 
+      is_featured: form.is_featured,
+      video_url: form.video_url || null, 
+      is_adult: form.is_adult,
     };
     if (editProduct) {
       const { error } = await supabase.from("products").update(payload).eq("id", editProduct.id);
@@ -315,8 +327,8 @@ const ProductsPage = () => {
                 )}
                 <div className="flex items-center justify-between mt-3">
                   <span className="font-display font-black text-primary text-base">KSh {p.price.toLocaleString()}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-display font-semibold ${p.stock > 0 ? "bg-accent text-accent-foreground" : "bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400"}`}>
-                    {p.stock > 0 ? `${p.stock} in stock` : "Out of stock"}
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-display font-semibold ${(p.stock ?? p.quantity ?? 0) > 0 ? "bg-accent text-accent-foreground" : "bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400"}`}>
+                    {(p.stock ?? p.quantity ?? 0) > 0 ? `${(p.stock ?? p.quantity ?? 0)} in stock` : "Out of stock"}
                   </span>
                 </div>
               </div>

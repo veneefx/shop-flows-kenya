@@ -269,6 +269,15 @@ const SalesPage = () => {
         const { data, error } = await supabase.from("orders").insert([orderData]).select().single();
         if (error) throw error;
         setLastOrder(data);
+
+        // Update stock for each item
+        for (const item of cart) {
+          const product = products.find(p => p.id === item.id);
+          if (product) {
+            const newStock = Math.max(0, (product.stock ?? product.quantity ?? 0) - item.qty);
+            await supabase.from("products").update({ stock: newStock, quantity: newStock }).eq("id", item.id);
+          }
+        }
       } else {
         await saveOfflineOrder(orderData);
         setLastOrder(orderData);
@@ -390,7 +399,7 @@ const SalesPage = () => {
                     <img src={product.images[0]} alt={product.name} className="w-full h-24 object-cover rounded mb-2" />
                   )}
                   <p className="text-xs font-display font-semibold text-foreground truncate">{product.name}</p>
-                  <p className="text-xs text-muted-foreground mb-2">Stock: {product.quantity || 0}</p>
+                  <p className="text-xs text-muted-foreground mb-2">Stock: {product.stock ?? product.quantity ?? 0}</p>
                   <p className="text-sm font-display font-black text-primary">KSh {Number(product.price).toLocaleString()}</p>
                 </motion.button>
               ))}
@@ -481,9 +490,42 @@ const SalesPage = () => {
             </div>
           </div>
 
+          {/* Customer Info */}
+          <div className="mb-4 space-y-3">
+            <p className="text-xs font-display font-semibold text-muted-foreground uppercase tracking-wider">Customer Details</p>
+            <div className="space-y-2">
+              <input
+                type="text"
+                placeholder="Customer Name"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-xs font-body focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <input
+                type="text"
+                placeholder="Phone Number"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-background border border-border text-xs font-body focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          {/* Manual Discount */}
+          <div className="mb-4 space-y-2">
+            <p className="text-xs font-display font-semibold text-muted-foreground uppercase tracking-wider">Manual Discount (KSh)</p>
+            <input
+              type="number"
+              placeholder="0"
+              value={manualDiscount || ""}
+              onChange={(e) => setManualDiscount(Number(e.target.value))}
+              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-xs font-body focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+
           {/* Payment Method */}
           <div className="mb-4 space-y-2">
-            <p className="text-xs font-display font-semibold text-muted-foreground">Payment Method:</p>
+            <p className="text-xs font-display font-semibold text-muted-foreground uppercase tracking-wider">Payment Method</p>
             <div className="grid grid-cols-2 gap-2">
               {(["cash", "mpesa", "card", "credit"] as const).map((method) => (
                 <button
