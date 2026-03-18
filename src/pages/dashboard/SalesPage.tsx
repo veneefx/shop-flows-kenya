@@ -255,14 +255,14 @@ const SalesPage = () => {
       const orderData = {
         shop_id: shopId,
         customer_name: customerName || "Walk-in Customer",
-        customer_phone: customerPhone,
+        customer_phone: customerPhone || "N/A",
         items: cart.map(c => ({ product_id: c.id, quantity: c.qty, price: c.price })),
         subtotal_amount: subtotal,
         discount_amount: totalDiscount,
         total_amount: total,
+        total: total, // Keep for backward compatibility
         payment_method: payMethod,
         status: payMethod === "credit" ? "pending" : "paid",
-        created_at: new Date().toISOString(),
       };
 
       if (isOnline) {
